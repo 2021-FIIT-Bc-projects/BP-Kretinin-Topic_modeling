@@ -40,10 +40,6 @@ print(lda_model.id2word)  # Model attributes
 visualisation = pyLDAvis.gensim_models.prepare(lda_model, corpus, id2word)
 pyLDAvis.save_html(visualisation, 'LDA_Visualization.html')
 
-
-
-
-
 joblib.dump(lda_model, '../../models/lda_model2.jl')
 # then reload it with
 lda_model = joblib.load('../../models/lda_model2.jl')

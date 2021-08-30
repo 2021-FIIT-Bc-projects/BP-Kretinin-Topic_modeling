@@ -11,6 +11,7 @@ def main():
 
     print(">>> Enter documets to analyze, visualized result will be shown after documents selection and analysis")
     print(">>> Documents to analyze:\n 1) Path to the document(s)\n 2) Direct input to the console\n 3) Generate HTML document with LDA topics\n 4) Close program")
+
     corpuses = []
     texts = []
     while True:
@@ -26,11 +27,17 @@ def main():
                 continue
             mytext = [in_val]
             texts.append(mytext[0])
+
 #            mytext = ["The elephant didn't want to talk about the person in the room."]
             corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
-            if len(corpuses) > 1:
-                prepare.get_top_topic(ldamodel=lda_model, corpus=corpuses)
 
+            # Compute Perplexity
+            print('\nPerplexity: ',
+                  lda_model.log_perplexity(corpuses))  # a measure of how good the model is. lower the better.
+
+            # Used only for terminal output of the current model analysis (?)
+#            if len(corpuses) > 1:
+#                prepare.get_top_topic(ldamodel=lda_model, corpus=corpuses)
 
 
         elif (input_val == '3'):
