@@ -6,7 +6,12 @@ from src.visualization import visualize as vis
 
 def main():
     print(">>> Environment is preparing...")
-    lda_model = joblib.load('models/lda_model2.jl')
+    # LDA model based on Newsgrounds articles (emails)
+#    lda_model = joblib.load('models/lda_model2.jl')
+
+    # LDA model based on Wikipedia emails
+    lda_model = joblib.load('models/lda_wiki_model.jl')
+
     print(">>> Environment is ready to go!")
 
     print(">>> Enter documets to analyze, visualized result will be shown after documents selection and analysis")
@@ -14,11 +19,31 @@ def main():
 
     corpuses = []
     texts = []
+    file_path_base = 'data/external/texts/'
     while True:
         print("Your choice (1 - path, 2 - direct input, 3 - LDA topics, 4 - exit): ")
         input_val = input()
         if (input_val == '1'):
-            print("1 entered, no content is here right now")
+            print("Enter name of the file located at 'data/external/texts' folder")
+
+            file_name = str(input())
+            full_path = file_path_base + file_name
+            try:
+                f = open(full_path, 'r')
+            except:
+                print("Unable to open the file, check if file's name is correct")
+                continue
+            text = f.read()
+
+            if len(text.strip()) == 0:
+                print("No text was found")
+                continue
+            mytext = [text]
+            texts.append(text)
+
+            corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
+
+            f.close()
         elif (input_val == '2'):
             print("2 entered, input your text: ")
             in_val = input()
@@ -26,9 +51,8 @@ def main():
                 print("No text was found")
                 continue
             mytext = [in_val]
-            texts.append(mytext[0])
+            texts.append(in_val)
 
-#            mytext = ["The elephant didn't want to talk about the person in the room."]
             corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
 
             # Compute Perplexity
