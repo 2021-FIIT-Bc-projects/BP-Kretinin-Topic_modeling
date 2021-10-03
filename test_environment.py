@@ -1,7 +1,25 @@
 import joblib
 
-import prepare
+import prepare, re
+import zipfile
 from src.visualization import visualize as vis
+
+def process_file(file, filename, corpuses, texts, lda_model):
+    text = file.read(filename)
+    if type(text) == bytes:
+        text = text.decode('utf-8')
+
+    if len(text.strip()) == 0:
+        print("No text was found")
+        return
+    mytext = [text]
+
+    # Remove some special (unprintable) characters
+    text = re.sub(r"[\t\r\n\v\f]+", " ", text)
+
+    texts.append(text)
+
+    corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
 
 
 def main():
@@ -29,21 +47,24 @@ def main():
             file_name = str(input())
             full_path = file_path_base + file_name
             try:
-                f = open(full_path, 'r')
+                if file_name.endswith(('.txt', '.docx', '.doc')):
+                    f = open(full_path, 'r')
+                    print('single text file')
+                elif file_name.endswith('.zip'):
+                    print('zip')
+                    f = zipfile.ZipFile(full_path, "r")
+                else:
+                    break
             except:
                 print("Unable to open the file, check if file's name is correct")
                 continue
-            text = f.read()
-
-            if len(text.strip()) == 0:
-                print("No text was found")
-                continue
-            mytext = [text]
-            texts.append(text)
-
-            corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
-
-            f.close()
+            if file_name.endswith('.zip'):
+                for filename in f.namelist():
+                    process_file(f, filename, corpuses, texts, lda_model)
+                f.close()
+            elif file_name.endswith(('.txt', '.docx', '.doc')):
+                process_file(f, None, corpuses, texts, lda_model)
+                f.close()
         elif (input_val == '2'):
             print("2 entered, input your text: ")
             in_val = input()
@@ -51,6 +72,10 @@ def main():
                 print("No text was found")
                 continue
             mytext = [in_val]
+
+            # Remove some special (unprintable) characters
+            in_val = re.sub(r"[\t\r\n\v\f]+", " ", in_val)
+
             texts.append(in_val)
 
             corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))

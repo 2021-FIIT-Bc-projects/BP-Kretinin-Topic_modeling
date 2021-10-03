@@ -164,7 +164,8 @@ def show_statistics(lda_model, corpus, texts):
     for i, ax in enumerate(axes.flatten()):
         df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
         doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
-        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
+#        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
+        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
         ax.tick_params(axis='y', labelcolor=cols[i], color=cols[i])
         sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
         ax.set(xlim=(0, max_len), xlabel='Document Word Count')

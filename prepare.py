@@ -78,6 +78,12 @@ def get_corpus(lda_model, text):
 
 
 def sent_to_words(sentences):
+    # Remove Emails
+    sentences = [re.sub('\S*@\S*\s?', '', sent) for sent in sentences]
+
+    # Remove most of special characters
+    sentences = [re.sub(r"[^a-zA-Z0-9]+", " ", sent) for sent in sentences]
+
     for sentence in sentences:
         yield(gensim.utils.simple_preprocess(str(sentence), deacc=True))  # deacc=True removes punctuations
 
