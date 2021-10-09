@@ -1,5 +1,10 @@
 import sys
 
+import os
+from bs4 import BeautifulSoup
+import requests
+from zipfile import ZipFile
+from tempfile import TemporaryFile
 import numpy as np
 import pandas as pd
 import re, nltk, spacy, gensim
@@ -161,3 +166,78 @@ def show_lda_model_topics(df_topic_keywords):
     the_table.set_fontsize(10)
     plt.autoscale()
     plt.show()
+
+
+#  https://towardsdatascience.com/web-scraping-news-articles-in-python-9dd605799558
+def get_last_N_articles_from_bbc(number):
+    url = "https://www.bbc.com/news/world"
+    r1 = requests.get(url)
+    coverpage = r1.content
+
+    soup1 = BeautifulSoup(coverpage, "html5lib")
+
+    coverpage_news = soup1.find_all(
+        class_='gs-c-promo-heading gs-o-faux-block-link__overlay-link gel-pica-bold nw-o-link-split__anchor')
+
+    # Scraping the first N articles
+    number_of_articles = number
+
+    # Main page ref
+    main_page = "https://www.bbc.com"
+
+    # Empty lists for content, links and titles
+    news_contents = []
+    list_links = []
+    list_titles = []
+
+    zipArch = ZipFile('data/external/texts/sample.zip', 'w')
+    tmp_file_path = "data/external/texts/"
+
+    for iter in np.arange(0, number_of_articles):
+
+        # only news articles (there are also albums and other things)
+        #        if "inenglish" not in coverpage_news[n].find('a')['href']:
+        #            continue
+
+        # Getting the link of the article
+        link = main_page + coverpage_news[iter]['href']
+        list_links.append(link)
+
+        # Getting the title
+        title = coverpage_news[iter].get_text()
+        list_titles.append(title)
+
+        # Reading the content (it is divided in paragraphs)
+        article = requests.get(link)
+        article_content = article.content
+        soup_article = BeautifulSoup(article_content, 'html5lib')
+        body = soup_article.find_all('article', class_='ssrcss-1mc1y2-ArticleWrapper e1nh2i2l6')
+
+        # Skip if page doesn't have "article" part
+        if len(body) == 0:
+            continue
+        x = body[0].find_all('p')
+
+        # Unifying the paragraphs
+        list_paragraphs = []
+        final_article = ""
+
+        # Store text of article, if article contents it
+        if len(x) > 0:
+            for p in np.arange(0, len(x)):
+                paragraph = x[p].get_text()
+                list_paragraphs.append(paragraph)
+                final_article = " ".join(list_paragraphs)
+
+            news_contents.append(final_article)
+
+            # Open file(create), write text inside it, move its copy to the zip, and delete this file
+            tmp_file = open(tmp_file_path + "Article" + str(iter) + ".txt", "w", encoding="utf-8")
+            tmp_file.write(final_article)
+            tmp_file.close()
+            zipArch.write(tmp_file.name, os.path.basename(tmp_file.name))
+            os.remove(tmp_file_path + "Article" + str(iter) + ".txt")
+
+    # close the Zip File
+    zipArch.close()
+

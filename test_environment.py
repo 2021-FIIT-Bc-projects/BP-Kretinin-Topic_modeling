@@ -39,7 +39,7 @@ def main():
     texts = []
     file_path_base = 'data/external/texts/'
     while True:
-        print("Your choice (1 - path, 2 - direct input, 3 - LDA topics, 4 - exit): ")
+        print("Your choice (1 - path, 2 - direct input, 3 - Crawl for last N articles at BBC, 4 - LDA topics, 5 - exit): ")
         input_val = input()
         if (input_val == '1'):
             print("Enter name of the file located at 'data/external/texts' folder")
@@ -88,11 +88,19 @@ def main():
 #            if len(corpuses) > 1:
 #                prepare.get_top_topic(ldamodel=lda_model, corpus=corpuses)
 
-
         elif (input_val == '3'):
+            print("Input number of articles to crawl: ")
+            num = int(input())
+            if type(num) != int:
+                print("Wrong input format")
+                continue
+            prepare.get_last_N_articles_from_bbc(num)
+            print("Done")
+
+        elif (input_val == '4'):
             prepare.generate_HTML_doc_LDA(ldamodel=lda_model, corpus=corpuses)
             print("HTML generated at root directory")
-        elif (input_val == '4'):
+        elif (input_val == '5'):
             break
         else:
             print("Wrong argument")
