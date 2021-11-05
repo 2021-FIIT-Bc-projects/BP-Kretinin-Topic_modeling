@@ -33,13 +33,14 @@ def main():
     print(">>> Environment is ready to go!")
 
     print(">>> Enter documets to analyze, visualized result will be shown after documents selection and analysis")
-    print(">>> Documents to analyze:\n 1) Path to the document(s)\n 2) Direct input to the console\n 3) Generate HTML document with LDA topics\n 4) Close program")
+    print(">>> Documents to analyze:\n 1) Path to the document(s)\n 2) Direct input to the console\n"
+          " 3) Crawl for last N articles at reuters.com\n 4) Generate HTML document with LDA topics\n 5) Close program")
 
     corpuses = []
     texts = []
     file_path_base = 'data/external/texts/'
     while True:
-        print("Your choice (1 - path, 2 - direct input, 3 - Crawl for last N articles at BBC, 4 - LDA topics, 5 - exit): ")
+        print("Your choice (1 - path, 2 - direct input, 3 - Crawl for last N articles at reuters.com, 4 - LDA topics, 5 - exit): ")
         input_val = input()
         if (input_val == '1'):
             print("Enter name of the file located at 'data/external/texts' folder")
@@ -94,7 +95,7 @@ def main():
             if type(num) != int:
                 print("Wrong input format")
                 continue
-            prepare.get_last_N_articles_from_bbc(num)
+            prepare.get_last_N_articles_from_reuters(num)
             print("Done")
 
         elif (input_val == '4'):
