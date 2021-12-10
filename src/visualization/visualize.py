@@ -24,25 +24,32 @@ stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say',
 
 
 
-def show_table_with_documents_stats(dataFrame):
+def show_table_with_documents_stats(dataFrame, text_numbers = None):
 
     # Create temporary copy of data frame to not change original one
+    if text_numbers is None:
+        text_numbers = []
     temp_df = dataFrame.copy(deep=True)
+    if ("Text" in temp_df):
+        temp_df = temp_df.drop(columns="Text")
 
     # Limit number of docs to not overflow the window
-    temp_df = temp_df.head(10)
+    if not bool(text_numbers) or len(text_numbers) > 20:
+        temp_df = temp_df.head(10)
+    else:
+        temp_df = temp_df.iloc[text_numbers]
 
     colLabels = temp_df.columns
 
     # Choose first 6 words (or less, if they aren't there) of the text
-    if ('Text' in temp_df):
-        temp_df['Text'] = temp_df['Text'].apply(lambda x: x.rsplit(maxsplit=len(x.split()) - 6)[0])
-    elif ('Representative Text' in temp_df):
-        temp_df['Representative Text'] = temp_df['Representative Text'].apply(
-            lambda x: x.rsplit(maxsplit=len(x.split()) - 6)[0])
-    else:
-        print("Wrong data frame")
-        return
+    #if ('Text' in temp_df):
+    #    temp_df['Text'] = temp_df['Text'].apply(lambda x: x.rsplit(maxsplit=len(x.split()) - 6)[0])
+    #elif ('Representative Text' in temp_df):
+    #    temp_df['Representative Text'] = temp_df['Representative Text'].apply(
+    #        lambda x: x.rsplit(maxsplit=len(x.split()) - 6)[0])
+    #else:
+    #    print("Wrong data frame")
+    #    return
 
     plt.rcParams["figure.figsize"] = [16, 3]
     plt.rcParams["figure.autolayout"] = True
@@ -62,7 +69,7 @@ def show_table_with_documents_stats(dataFrame):
     plt.show()
 
 
-def show_statistics(lda_model, corpus, texts):
+def show_statistics(lda_model, corpus, texts, text_numbers):
 #    texts = [text[:60] + "..." for text in texts_in]
     def format_topics_sentences(ldamodel=None, corpus=corpus, texts=texts):
         # Init output
@@ -93,11 +100,14 @@ def show_statistics(lda_model, corpus, texts):
 
     # Format
     df_dominant_topic = df_topic_sents_keywords.reset_index()
-    df_dominant_topic.columns = ['Document_No', 'Dominant_Topic', 'Topic_Perc_Contrib', 'Keywords', 'Text']
+    df_dominant_topic.columns = ['Document_No', 'Dominant_Topic', 'Topic_Perc_Contrib', 'Keywords', "Text"]
 
-    df_dominant_topic.head(10)
+#    df_dominant_topic.head(10)
 
-    show_table_with_documents_stats(df_dominant_topic)
+    text_numbers = list(set(text_numbers))
+
+
+    show_table_with_documents_stats(df_dominant_topic, text_numbers)
 
 
     # Display setting to show more characters in column
@@ -105,6 +115,7 @@ def show_statistics(lda_model, corpus, texts):
 
     sent_topics_sorteddf_mallet = pd.DataFrame()
     sent_topics_outdf_grpd = df_topic_sents_keywords.groupby('Dominant_Topic')
+    sent_topics_outdf_grpd = sent_topics_outdf_grpd
 
     for i, grp in sent_topics_outdf_grpd:
         sent_topics_sorteddf_mallet = pd.concat([sent_topics_sorteddf_mallet,
@@ -115,7 +126,8 @@ def show_statistics(lda_model, corpus, texts):
     sent_topics_sorteddf_mallet.reset_index(drop=True, inplace=True)
 
     # Format
-    sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Representative Text"]
+    sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Text"]
+    sent_topics_sorteddf_mallet = sent_topics_sorteddf_mallet.drop(columns="Text")
 
     # Show
 #    sent_topics_sorteddf_mallet.head(10)
@@ -173,9 +185,15 @@ def show_statistics(lda_model, corpus, texts):
         df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
         doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
 
-        max_len = int(round(max(doc_lens) * 1.05, 0))
-        min_len = min(doc_lens)
-        values, counts = np.unique(doc_lens, return_counts=True)
+        if bool(doc_lens):
+            max_len = int(round(max(doc_lens) * 1.05, 0))
+            min_len = min(doc_lens)
+            values, counts = np.unique(doc_lens, return_counts=True)
+        else:
+            max_len = 0
+            max_len = 0
+            values, counts = [[0], [0]]
+
 
 #        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
 #        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
