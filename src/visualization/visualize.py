@@ -23,6 +23,20 @@ stop_words = stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
 
+def show_coherence_and_perplexity(model, corpus):
+    coh_model = CoherenceModel(model=model, corpus=corpus, coherence='u_mass')
+    coher_val = coh_model.get_coherence()  # get coherence value
+
+    print("Coherence value: " + str(coher_val))
+
+    perpl_values = []
+    counter = 1
+#    for text in corpus:
+#        perpl_values.append(model.log_perplexity(text))
+#        print(str(counter) + ". Perplexity value: " + str(perpl_values.pop()))
+#        counter += 1
+
+
 
 def show_table_with_documents_stats(dataFrame, text_numbers = None):
 
@@ -109,6 +123,8 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
     show_table_with_documents_stats(df_dominant_topic, text_numbers)
 
+    show_coherence_and_perplexity(model=lda_model, corpus=corpus)
+
 
     # Display setting to show more characters in column
     pd.options.display.max_colwidth = 100
@@ -142,46 +158,57 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
     # Words can be count as amount of " "(spacebar) + 1
     doc_lens = [d.count(' ')+1 for d in texts]
-    values, counts = np.unique(doc_lens, return_counts=True)
 
-    # Plot
-    plt.figure(figsize=(16, 7), dpi=160)
-#    plt.hist(doc_lens, bins=(max(doc_lens) - min(doc_lens) + 1), color='navy')
+    if (len(corpus) > 1):
+        values, counts = np.unique(doc_lens, return_counts=True)
 
-    plt.axis([0, round(max(doc_lens) * 1.05, 0), 0, round(max(counts) * 1.5, 0) + 1])
+        # Plot
+        plt.figure(figsize=(16, 7), dpi=160)
+    #    plt.hist(doc_lens, bins=(max(doc_lens) - min(doc_lens) + 1), color='navy')
 
-#    plt.hist(doc_lens, bins=round(len(values) * 2) + 1, color='navy')
-    plt.hist(doc_lens, bins=round(len(doc_lens)) + 1, color='navy')
+        plt.axis([0, round(max(doc_lens) * 1.05, 0), 0, round(max(counts) * 1.5, 0) + 1])
 
-    plt.text(0.85 * max(doc_lens), 0.9 * plt.ylim()[1], "Mean   : " + str(round(np.mean(doc_lens))))
-    plt.text(0.85 * max(doc_lens), 0.8 * plt.ylim()[1], "Median : " + str(round(np.median(doc_lens))))
-    plt.text(0.85 * max(doc_lens), 0.7 * plt.ylim()[1], "Stdev  : " + str(round(np.std(doc_lens))))
-    plt.text(0.85 * max(doc_lens), 0.6 * plt.ylim()[1], "1%ile  : " + str(round(np.quantile(doc_lens, q=0.01))))
-    plt.text(0.85 * max(doc_lens), 0.5 * plt.ylim()[1], "99%ile : " + str(round(np.quantile(doc_lens, q=0.99))))
+    #    plt.hist(doc_lens, bins=round(len(values) * 2) + 1, color='navy')
+        plt.hist(doc_lens, bins=round(len(doc_lens)) + 1, color='navy')
 
-    plt.ylabel("Number of Documents")
-    plt.xlabel("Document Word Count")
-#    plt.axis([0, round(max(doc_lens)*1.05, 0), 0, len(corpus)])
+        plt.text(0.85 * max(doc_lens), 0.9 * plt.ylim()[1], "Mean   : " + str(round(np.mean(doc_lens))))
+        plt.text(0.85 * max(doc_lens), 0.8 * plt.ylim()[1], "Median : " + str(round(np.median(doc_lens))))
+        plt.text(0.85 * max(doc_lens), 0.7 * plt.ylim()[1], "Stdev  : " + str(round(np.std(doc_lens))))
+        plt.text(0.85 * max(doc_lens), 0.6 * plt.ylim()[1], "1%ile  : " + str(round(np.quantile(doc_lens, q=0.01))))
+        plt.text(0.85 * max(doc_lens), 0.5 * plt.ylim()[1], "99%ile : " + str(round(np.quantile(doc_lens, q=0.99))))
 
-    plt.title('Distribution of Document Word Counts', fontdict=dict(size=22))
-    plt.show()
+        plt.ylabel("Number of Documents")
+        plt.xlabel("Document Word Count")
+    #    plt.axis([0, round(max(doc_lens)*1.05, 0), 0, len(corpus)])
 
-
-
-
+        plt.title('Distribution of Document Word Counts', fontdict=dict(size=22))
+        plt.show()
 
 
 
 
-    cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS'
 
-    fig, axes = plt.subplots(2, 2, figsize=(16, 14), dpi=160, sharex=True, sharey=True)
 
+
+
+    cols = [color for name, color in mcolors.XKCD_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS' / mcolors.TABLEAU_COLORS
+
+    rows = int(np.sqrt(lda_model.num_topics))
+    columns = int(lda_model.num_topics/rows)+1
+
+
+    fig, axes = plt.subplots(rows, columns, figsize=(16, 14), dpi=160, sharex="none", sharey="none")
 
     max_len_ticks = int(round(max(doc_lens) * 1.05, 0))
-
+    max_ticks_range = max(3, 10 - lda_model.num_topics)
 
     for i, ax in enumerate(axes.flatten()):
+
+        # delete unused subplots
+        if i >= lda_model.num_topics:
+            plt.delaxes(axes[int(i / columns)][i % columns])
+            continue
+
         df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
         doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
 
@@ -190,27 +217,27 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
             min_len = min(doc_lens)
             values, counts = np.unique(doc_lens, return_counts=True)
         else:
-            max_len = 0
-            max_len = 0
+            max_len = 1
+            min_len = 0
             values, counts = [[0], [0]]
 
 
 #        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
 #        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
         ax.hist(doc_lens, bins=(len(values) * 2 + 1), color=cols[i])
-        ax.tick_params(axis='y', labelcolor=cols[i], color=cols[i])
-        ax.set(xlim=(0, max_len), ylim=(0, max(counts)), xlabel='Document Word Count')
-        ax.set_ylabel('Number of Documents', color=cols[i])
+        ax.tick_params(axis='y', labelcolor="black", color=cols[i])
+        ax.set(xlim=(min_len, max_len), ylim=(0, max(1, max(counts))), xlabel='Document Word Count')
+        ax.set_ylabel('Number of Documents', color="black")
         ax.set_title('Topic: ' + str(i), fontdict=dict(size=16, color=cols[i]))
         sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
 
 
     fig.tight_layout()
+    plt.subplots_adjust()
     fig.subplots_adjust(top=0.90)
-    plt.xticks(np.linspace(0, max_len_ticks, 9))
+    plt.xticks(np.linspace(0, max_len_ticks, max_ticks_range))
     fig.suptitle('Distribution of Document Word Counts by Dominant Topic', fontsize=22)
     plt.show()
-
 
 
 
@@ -289,7 +316,7 @@ def t_SNE_clustering(lda_model, corpus):
 
     # Plot the Topic Clusters using Bokeh
     output_file("t_SNE_clusters.html")
-    n_topics = 4
+    n_topics = lda_model.num_topics
     mycolors = np.array([color for name, color in mcolors.TABLEAU_COLORS.items()])
     plot = figure(title="t-SNE Clustering of {} LDA Topics".format(n_topics),
                   plot_width=900, plot_height=700)

@@ -28,6 +28,11 @@ def main():
         print("Invalid argument")
         return -1
 
+    print("Choose number of topics: ")
+    topics_num = int(input())
+    print("Chosen number of topics: ")
+
+
     # Create Dictionary
     id2word = corpora.Dictionary(data_lemmatized)
 
@@ -37,7 +42,7 @@ def main():
     # Build LDA model
     lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                                id2word=id2word,
-                                               num_topics=4,
+                                               num_topics=topics_num,
                                                random_state=100,
                                                update_every=1,
                                                chunksize=10,
@@ -55,13 +60,13 @@ def main():
     pyLDAvis.save_html(visualisation, 'LDA_Visualization.html')
 
     if in_val == '1':
-        joblib.dump(lda_model, '../../models/lda_model2.jl')
+        joblib.dump(lda_model, '../../models/newsgrounds_' + str(topics_num) + 'topics.jl')
         # then reload it with
-        lda_model = joblib.load('../../models/lda_model2.jl')
+        lda_model = joblib.load('../../models/newsgrounds_' + str(topics_num) + 'topics.jl')
     elif in_val == '2':
-        joblib.dump(lda_model, '../../models/lda_wiki_model.jl')
+        joblib.dump(lda_model, '../../models/lda_wiki_model_' + str(topics_num) + 'topics.jl')
         # then reload it with
-        lda_model = joblib.load('../../models/lda_wiki_model.jl')
+        lda_model = joblib.load('../../models/lda_wiki_model_' + str(topics_num) + 'topics.jl')
 
 if __name__ == '__main__':
     main()

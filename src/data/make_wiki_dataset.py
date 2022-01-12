@@ -55,6 +55,13 @@ def main():
     # 28 MB zip
     path_to_wiki_dump = datapath("enwiki-latest-pages-articles15.xml-p17324603p17460152.bz2")
 
+    # 3 GB zip
+#    path_to_wiki_dump = datapath("wikidatawiki-20211220-pages-articles-multistream19.xml-p39053268p40222795.bz2")
+
+
+
+
+
 #    corpus_path = get_tmpfile("wiki-corpus.mm")
 
     wiki = WikiCorpus(path_to_wiki_dump, processes=4, lower=True, token_min_len=3, token_max_len=15)  # create word->word_id mapping, ~8h on full wiki

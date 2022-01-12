@@ -76,10 +76,14 @@ def get_corpus(lda_model, text):
     mytext_3 = lemmatization(mytext_2, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
     # Step 3: LDA update
-    corpus = [lda_model.id2word.doc2bow(text) for text in mytext_3]
-    lda_model.update(corpus)
+#    corpus = [lda_model.id2word.doc2bow(text) for text in mytext_3]
 
-    return corpus[0]
+    # Calculate and print perplexity
+#    print("Perplexity: " + str(lda_model.log_perplexity(corpus)))
+
+#    lda_model.update(corpus)
+
+    return mytext_3
 
 
 def sent_to_words(sentences):
@@ -185,7 +189,7 @@ def get_last_N_articles_from_reuters(number):
     list_links = []
     list_titles = []
 
-    zipArch = ZipFile('data/external/texts/sample100.zip', 'w')
+    zipArch = ZipFile('data/external/texts/article' + str(number) + '.zip', 'w')
     tmp_file_path = "data/external/texts/"
 
     while (processed_num < number):
