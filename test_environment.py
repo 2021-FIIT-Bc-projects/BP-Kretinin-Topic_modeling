@@ -14,7 +14,7 @@ def progress_bar(iteration, total):
     percent_part = ("{0:.2f}").format(100 * (iteration / total))
     filled = int(total_len * iteration / total)
     bar = '█' * filled + '-' * (total_len - filled)
-    print(f'\r analysis progress: |{bar}| {percent_part}%', end='')
+    print(f'\r Progress: [{bar}] {percent_part}%', end='')
     if iteration == total:
         print()
 
@@ -132,7 +132,8 @@ def main():
                     corpora_name = str(input())
                     full_path = file_path_base + corpora_name
 
-                    # read corpora dump as zipped list and separate preprocessed text (array of words) from documents' texts
+                    # read corpora dump as zipped list and separate preprocessed text
+                    # (array of words) from documents' texts
                     zip_list = joblib.load(full_path)
                     zip_obj = zip(*zip_list)
                     unzip_list = list(zip_obj)
