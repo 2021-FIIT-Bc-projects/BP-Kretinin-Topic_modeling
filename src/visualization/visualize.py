@@ -8,6 +8,8 @@ from gensim.utils import simple_preprocess
 from gensim.models import CoherenceModel
 import matplotlib.pyplot as plt
 
+from prepare import get_corpus
+
 import seaborn as sns
 import matplotlib.colors as mcolors
 from matplotlib.patches import Rectangle
@@ -24,17 +26,24 @@ stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say',
 
 
 def show_coherence_and_perplexity(model, corpus):
-    coh_model = CoherenceModel(model=model, corpus=corpus, coherence='u_mass')
-    coher_val = coh_model.get_coherence()  # get coherence value
 
-    print("Coherence value: " + str(coher_val))
+    # Tokenized text is needed for a coherence model
+#    texts_BoW = get_corpus(model, texts)
 
-    perpl_values = []
-    counter = 1
-#    for text in corpus:
-#        perpl_values.append(model.log_perplexity(text))
-#        print(str(counter) + ". Perplexity value: " + str(perpl_values.pop()))
-#        counter += 1
+    # Coherence model to get coherence score, based on currently used corpus
+    coherence_model_lda = gensim.models.CoherenceModel(model=model, corpus=corpus, coherence='u_mass')
+
+    print("Calculating coherence, it might take a while...")
+
+    coherence_score = coherence_model_lda.get_coherence()
+    coherence_per_topic = coherence_model_lda.get_coherence_per_topic()
+
+    print("U_Mass Coherence value: " + str(coherence_score))
+    print("U_Mass Coherence per-topic values: " + str(coherence_per_topic))
+
+    perplexity_score = model.log_perplexity(corpus)
+
+    print("Perplexity: " + str(perplexity_score))
 
 
 
@@ -123,7 +132,7 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
     show_table_with_documents_stats(df_dominant_topic, text_numbers)
 
-    show_coherence_and_perplexity(model=lda_model, corpus=corpus)
+#
 
 
     # Display setting to show more characters in column
@@ -156,8 +165,21 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
 
 
-    # Words can be count as amount of " "(spacebar) + 1
+    # Words can be counted as amount of " "(spacebar) + 1
     doc_lens = [d.count(' ')+1 for d in texts]
+
+    # Calculate and delete outliers, if they are
+    # Formula: |x - mean| < 2 * std
+    mean = np.mean(doc_lens)
+    standard_deviation = np.std(doc_lens)
+    distance_from_mean = abs(doc_lens - mean)
+    max_deviations = 2
+    not_outlier = distance_from_mean < max_deviations * standard_deviation
+    no_outliers = []
+    for j, is_not_outlier in enumerate(not_outlier):
+        if is_not_outlier:
+            no_outliers.append(doc_lens[j])
+    doc_lens = no_outliers
 
     if (len(corpus) > 1):
         values, counts = np.unique(doc_lens, return_counts=True)
@@ -166,19 +188,25 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
         plt.figure(figsize=(16, 7), dpi=160)
     #    plt.hist(doc_lens, bins=(max(doc_lens) - min(doc_lens) + 1), color='navy')
 
-        plt.axis([0, round(max(doc_lens) * 1.05, 0), 0, round(max(counts) * 1.5, 0) + 1])
+#        plt.axis([0, round(max(doc_lens) * 1.05, 0), 0, round(max(counts) * 1.5, 0) + 1])
+
+        ax = plt.gca()
+
+        ax.set(xlim=(min(doc_lens), max(doc_lens)), xlabel='Document Word Count')
+        ax.set_ylabel('Number of Documents', color="black")
+        ax.set_xlabel('Words', color="black")
+
+        sns.histplot(ax=ax, x=doc_lens, bins="auto", stat="count")
+        sns.kdeplot(doc_lens, color="black", ax=ax.twinx())
 
     #    plt.hist(doc_lens, bins=round(len(values) * 2) + 1, color='navy')
-        plt.hist(doc_lens, bins=round(len(doc_lens)) + 1, color='navy')
+#        plt.hist(doc_lens, bins=round(len(doc_lens)) + 1, color='navy')
 
         plt.text(0.85 * max(doc_lens), 0.9 * plt.ylim()[1], "Mean   : " + str(round(np.mean(doc_lens))))
         plt.text(0.85 * max(doc_lens), 0.8 * plt.ylim()[1], "Median : " + str(round(np.median(doc_lens))))
         plt.text(0.85 * max(doc_lens), 0.7 * plt.ylim()[1], "Stdev  : " + str(round(np.std(doc_lens))))
         plt.text(0.85 * max(doc_lens), 0.6 * plt.ylim()[1], "1%ile  : " + str(round(np.quantile(doc_lens, q=0.01))))
         plt.text(0.85 * max(doc_lens), 0.5 * plt.ylim()[1], "99%ile : " + str(round(np.quantile(doc_lens, q=0.99))))
-
-        plt.ylabel("Number of Documents")
-        plt.xlabel("Document Word Count")
     #    plt.axis([0, round(max(doc_lens)*1.05, 0), 0, len(corpus)])
 
         plt.title('Distribution of Document Word Counts', fontdict=dict(size=22))
@@ -199,8 +227,7 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
     fig, axes = plt.subplots(rows, columns, figsize=(16, 14), dpi=160, sharex="none", sharey="none")
 
-    max_len_ticks = int(round(max(doc_lens) * 1.05, 0))
-    max_ticks_range = max(3, 10 - lda_model.num_topics)
+#    max_len_ticks = int(round(max(doc_lens) * 1.05, 0))
 
     for i, ax in enumerate(axes.flatten()):
 
@@ -212,30 +239,57 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
         df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
         doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
 
+        # Calculate and delete outliers, if they are
+        # Formula: |x - mean| < 2 * std
+        mean = np.mean(doc_lens)
+        standard_deviation = np.std(doc_lens)
+        distance_from_mean = abs(doc_lens - mean)
+        max_deviations = 2
+        not_outlier = distance_from_mean < max_deviations * standard_deviation
+
+        no_outliers = []
+        for j, is_not_outlier in enumerate(not_outlier):
+            if is_not_outlier:
+                no_outliers.append(doc_lens[j])
+        doc_lens = no_outliers
+
         if bool(doc_lens):
-            max_len = int(round(max(doc_lens) * 1.05, 0))
+            max_len = max(doc_lens)
             min_len = min(doc_lens)
-            values, counts = np.unique(doc_lens, return_counts=True)
+            empty_docs = False
         else:
             max_len = 1
             min_len = 0
-            values, counts = [[0], [0]]
-
+            empty_docs = False
 
 #        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
 #        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
-        ax.hist(doc_lens, bins=(len(values) * 2 + 1), color=cols[i])
-        ax.tick_params(axis='y', labelcolor="black", color=cols[i])
-        ax.set(xlim=(min_len, max_len), ylim=(0, max(1, max(counts))), xlabel='Document Word Count')
+
+        ax.set(xlim=(min_len, max_len), xlabel='Document Word Count')
+        ax.set_xticks(np.linspace(start=min_len, stop=max_len, num=3))
         ax.set_ylabel('Number of Documents', color="black")
-        ax.set_title('Topic: ' + str(i), fontdict=dict(size=16, color=cols[i]))
-        sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
+        ax.set_xlabel('Words', color="black")
+        ax.set_title('Topic: ' + str(i+1), fontdict=dict(size=16, color=cols[i]))
+        ax.tick_params(axis='y', labelcolor="black", color=cols[i])
+
+        if not (empty_docs):
+            sns.histplot(ax=ax, color=cols[i], x=doc_lens, bins="auto", stat="count")
+            sns.kdeplot(doc_lens, color="black", ax=ax.twinx())
+        else:
+            ax.text(0.35, 0.5, "Empty")
+
+#        ax.hist(doc_lens, bins=(len(values) * 2 + 1), color=cols[i])
+
+#        ax.set(xlim=(min_len, max_len), ylim=(0, max(1, max(counts))), xlabel='Document Word Count')
+#        ax.set_ylabel('Number of Documents', color="black")
+#        ax.set_title('Topic: ' + str(i), fontdict=dict(size=16, color=cols[i]))
+        #sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
+#        sns.kdeplot(doc_lens, color="black", shade=False, ax=ax)
 
 
     fig.tight_layout()
     plt.subplots_adjust()
     fig.subplots_adjust(top=0.90)
-    plt.xticks(np.linspace(0, max_len_ticks, max_ticks_range))
     fig.suptitle('Distribution of Document Word Counts by Dominant Topic', fontsize=22)
     plt.show()
 
@@ -298,8 +352,10 @@ def sentences_chart(lda_model, corpus, start = 0, end = 1):
 
 def t_SNE_clustering(lda_model, corpus):
     topic_weights = []
+    tmp_obj = lda_model[corpus]
     for i, row_list in enumerate(lda_model[corpus]):
-        topic_weights.append([w for i, w in row_list[0]])
+        topic_weights.append([w for i, w in row_list])
+
 
     # Array of topic weights
     arr = pd.DataFrame(topic_weights).fillna(0).values
@@ -311,7 +367,7 @@ def t_SNE_clustering(lda_model, corpus):
     topic_num = np.argmax(arr, axis=1)
 
     # tSNE Dimension Reduction
-    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca')
+    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca', n_jobs=3)
     tsne_lda = tsne_model.fit_transform(arr)
 
     # Plot the Topic Clusters using Bokeh

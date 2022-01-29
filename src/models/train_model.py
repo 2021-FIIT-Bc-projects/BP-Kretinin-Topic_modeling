@@ -22,7 +22,7 @@ def main():
 
     elif in_val == '2':
 
-        data_lemmatized = joblib.load('../../data/processed/proc_wiki_data2.jl')
+        data_lemmatized = joblib.load('../../data/processed/proc_wiki_data3.jl')
 
     else:
         print("Invalid argument")
@@ -40,15 +40,15 @@ def main():
     corpus = [id2word.doc2bow(text) for text in data_lemmatized]
 
     # Build LDA model
-    lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+    lda_model = gensim.models.ldamulticore.LdaMulticore(corpus=corpus,
                                                id2word=id2word,
                                                num_topics=topics_num,
                                                random_state=100,
-                                               update_every=1,
+                                               workers=7,
                                                chunksize=10,
                                                passes=10,
                                                alpha='symmetric',
-                                               iterations=100,
+                                               iterations=50,
                                                per_word_topics=True)
 
     pprint(lda_model.print_topics())
@@ -64,9 +64,11 @@ def main():
         # then reload it with
         lda_model = joblib.load('../../models/newsgrounds_' + str(topics_num) + 'topics.jl')
     elif in_val == '2':
-        joblib.dump(lda_model, '../../models/lda_wiki_model_' + str(topics_num) + 'topics.jl')
+        joblib.dump(lda_model, '../../models/big_lda_wiki_model_' + str(topics_num) + 'topics.jl')
         # then reload it with
-        lda_model = joblib.load('../../models/lda_wiki_model_' + str(topics_num) + 'topics.jl')
+#        lda_model = joblib.load('../../models/big_lda_wiki_model_' + str(topics_num) + 'topics.jl')
+
+    print("done")
 
 if __name__ == '__main__':
     main()

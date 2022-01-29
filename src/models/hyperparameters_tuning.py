@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 # hyperparams_list - list of hyperparameters (array of dictionaries) for LDA Model training
 # dir_path - path to the directory, where models will be/are saved
 # with_training - bool, if models should be trained first, or if step can be skipped (models are already exist)
-def custom_grid_search(texts, corpus, id2word, hyperparams_list, coherence_scores, perplexity_scores, dir_path, with_training):
+def custom_grid_search(texts, corpus, id2word, hyperparams_list, coherence_cv_scores, coherence_umass_scores, perplexity_scores, dir_path, with_training):
     counter = 1
 
 
@@ -32,13 +32,13 @@ def custom_grid_search(texts, corpus, id2word, hyperparams_list, coherence_score
             lda_model = gensim.models.ldamulticore.LdaMulticore(corpus=corpus,
                                                         id2word=id2word,
                                                         num_topics=num_topics,
-                                                        workers=4,
+                                                        workers=7,
                                                         random_state=100,
                                                         chunksize=10,
                                                         passes=10,
                                                         alpha=alpha,
                                                         iterations=50,
-                                                        per_word_topics=True)
+                                                        per_word_topics=False)
 
             joblib.dump(lda_model, dir_path + str(num_topics) + 'topics_' + alpha + '.jl')
 
@@ -55,8 +55,14 @@ def custom_grid_search(texts, corpus, id2word, hyperparams_list, coherence_score
         coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=texts,
                                                            dictionary=id2word, coherence='c_v')
 
-        coherence_scores.append({"num_topics": num_topics,
-                                 "coherence": coherence_model_lda.get_coherence()})
+        coherence_cv_scores.append({"num_topics": num_topics,
+                                 "C_V coherence": coherence_model_lda.get_coherence()})
+
+        # Coherence model to get coherence score, based on currently used corpus and dictionary
+        coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, corpus=corpus, coherence='u_mass')
+
+        coherence_umass_scores.append({"num_topics": num_topics,
+                                 "U_Mass coherence": coherence_model_lda.get_coherence()})
 
         perplexity_scores.append({"num_topics": num_topics,
                                   "perplexity": lda_model.log_perplexity(corpus)})
@@ -65,7 +71,8 @@ def custom_grid_search(texts, corpus, id2word, hyperparams_list, coherence_score
     print("Total time spent: " + str(final_time) + " seconds")
 
     alpha = hyperparams_list[0]["alpha"]
-    joblib.dump(coherence_scores, dir_path + "coherence_scores_" + alpha + "_alpha.jl")
+    joblib.dump(coherence_cv_scores, dir_path + "coherence_cv_scores_" + alpha + "_alpha.jl")
+    joblib.dump(coherence_umass_scores, dir_path + "coherence_umass_scores_" + alpha + "_alpha.jl")
     joblib.dump(perplexity_scores, dir_path + "perplexity_scores_" + alpha + "_alpha.jl")
 
 def main():
@@ -73,7 +80,7 @@ def main():
 
     # Data used for model training
 
-    data_lemmatized = joblib.load('../../data/processed/proc_wiki_data2.jl')
+    data_lemmatized = joblib.load('../../data/processed/proc_wiki_data_100MB.jl')
 
     # Create Dictionary
     id2word = corpora.Dictionary(data_lemmatized)
@@ -96,14 +103,16 @@ def main():
                           {"num_topics": 12, "alpha": "asymmetric"},
                           {"num_topics": 14, "alpha": "asymmetric"}]
 
-    coherence_scores = []
+    coherence_cv_scores = []
+    coherence_umass_scores = []
     perplexity_scores = []
-    dir_path = "../../models/hyperparam_tuning/alpha/"
+    dir_path = "../../models/hyperparam_tuning/alpha_2/"
 
     custom_grid_search(data_lemmatized, corpus, id2word, hyperparams_list,
-                       coherence_scores, perplexity_scores, dir_path, False)
+                       coherence_cv_scores, coherence_umass_scores, perplexity_scores, dir_path, True)
 
-    print("Coherence:\n" + str(coherence_scores))
+    print("Coherence_cv:\n" + str(coherence_cv_scores))
+    print("Coherence_umass:\n" + str(coherence_umass_scores))
     print("Perplexity:\n" + str(perplexity_scores))
 
 if __name__ == '__main__':

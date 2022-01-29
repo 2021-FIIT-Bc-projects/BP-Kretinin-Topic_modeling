@@ -1,5 +1,7 @@
 import joblib
 
+from gensim.models.ldamodel import LdaModel
+
 import prepare, re
 import zipfile
 from src.visualization import visualize as vis
@@ -43,7 +45,9 @@ def main():
 
     # LDA model based on Wikipedia emails
 #    lda_model = joblib.load('models/lda_wiki_model.jl')
-    lda_model = joblib.load('models/lda_wiki_model_10topics.jl')
+#    lda_model = joblib.load('models/big_lda_wiki_model_6topics.jl')
+    model_name = "8topics_symmetric"
+    lda_model = joblib.load('models/hyperparam_tuning/alpha/' + model_name + '.jl')
 
     print(">>> Environment is ready to go!")
 
@@ -124,6 +128,7 @@ def main():
             print("Done")
 
         elif (input_val == '4'):
+            #
             if not bool(corpora):
                 try:
                     file_path_base = 'data/corpora/'
@@ -140,25 +145,10 @@ def main():
                     corpora = unzip_list[0]
                     texts = unzip_list[1]
                 except:
-                    print("No such file " + full_path)
+                    print("error")
                     continue
 
-            counter = 1
-            total_f = len(corpora)
-
             print("Corpora is processing...")
-
-#            time0 = time.time()
-
-#            for corpus in corpora:
-#                corpus = [lda_model.id2word.doc2bow(text) for text in corpus]
-#                lda_model.update(corpus)
-#                progress_bar(counter, total_f)
-#                counter += 1
-
-#            total0 = time.time() - time0
-
-#            print("Time0: " + str(total0))
 
             time1 = time.time()
 
@@ -169,7 +159,6 @@ def main():
             for corpus in corpora:
                 corpus = [lda_model.id2word.doc2bow(text) for text in corpus]
                 corpora_buf.append(corpus[0])
-                counter += 1
 
             # change corpora content from words to tokens
             corpora = corpora_buf
@@ -180,6 +169,9 @@ def main():
 
             print("Time spent: " + str(total1) + " seconds")
 
+            lda_model.save("models/interim/" + model_name + "_" + str(len(corpora)) + ".jl")
+
+#            joblib.dump(lda_model, "models/interim/" + model_name + "_" + str(len(corpora)) + ".jl")
         elif (input_val == '5'):
             zip_obj = zip(corpora, texts)
 
@@ -197,6 +189,34 @@ def main():
             print("HTML generated at root directory")
         elif (input_val == '7'):
             break
+        elif (input_val == '8'): #debug only
+            print("Model name:")
+            model_name = input()
+#            lda_model = joblib.load("models/interim/" + model_name)
+            lda_model = LdaModel.load("models/interim/" + model_name, mmap='r')
+
+            file_path_base = 'data/corpora/'
+            print("Enter the name of the file located at 'data/corpora' folder")
+
+            corpora_name = str(input())
+            full_path = file_path_base + corpora_name
+
+            # read corpora dump as zipped list and separate preprocessed text
+            # (array of words) from documents' texts
+            zip_list = joblib.load(full_path)
+            zip_obj = zip(*zip_list)
+            unzip_list = list(zip_obj)
+            corpora = unzip_list[0]
+            texts = unzip_list[1]
+
+            corpora_buf = []
+            for corpus in corpora:
+                corpus = [lda_model.id2word.doc2bow(text) for text in corpus]
+                corpora_buf.append(corpus[0])
+
+            # change corpora content from words to tokens
+            corpora = corpora_buf
+
         else:
             print("Wrong argument")
 
@@ -206,10 +226,11 @@ def main():
 
     print(">>> Visualization of the documents analysis results")
     print(">>> Choose desired visualization:\n 1) Show statistics\n 2) Show sentence chart (for 2+ texts)\n"
-          " 3) t-SNE clustering\n 4) exit")
+          " 3) t-SNE clustering\n 4) Calculate coherence and perplexity\n 5) exit")
 
     while True:
-        print("1 - Show statistics, 2 - Show sentence chart (for 2+ texts), 3 - t-SNE clustering, 4 - exit")
+        print("1 - Show statistics, 2 - Show sentence chart (for 2+ texts), 3 - t-SNE clustering,"
+              " 4 - Coherence and Perplexity, 5 - exit")
         input_val = input()
         if (input_val == '1'):
             print("Choose documents number to be displayed (up to 15, 0 for the first ten)")
@@ -227,6 +248,8 @@ def main():
         elif (input_val == '3'):
             vis.t_SNE_clustering(lda_model=lda_model, corpus=corpora)
         elif (input_val == '4'):
+            vis.show_coherence_and_perplexity(model=lda_model, corpus=corpora)
+        elif (input_val == '5'):
             break
         else:
             print("Wrong argument")

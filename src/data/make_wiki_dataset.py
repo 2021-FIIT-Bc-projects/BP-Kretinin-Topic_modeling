@@ -35,6 +35,24 @@ from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
+# function to save processed wiki dump as (corpora, texts) object
+def ready_corpus(texts, corpora):
+    transformed_corpora = tuple([doc] for doc in corpora)
+    transformed_texts = []
+    for doc in texts:
+        text = ""
+        for word in doc:
+            text += str(word) + " "
+        transformed_texts.append(text[:-1])
+    transformed_texts = tuple(doc for doc in transformed_texts)
+
+    zip_obj = zip(transformed_corpora, transformed_texts)
+
+    zip_list = list(zip_obj)
+
+    filename = '../../data/corpora/corpus_' + str(len(transformed_corpora)) + '_files.jl'
+    joblib.dump(zip_list, filename)
+    print("Corpora saved at " + filename)
 
 
 def main():
@@ -53,10 +71,16 @@ def main():
 #    path_to_wiki_dump = datapath("enwiki-latest-pages-articles1.xml-p000000010p000030302-shortened.bz2")
 
     # 28 MB zip
-    path_to_wiki_dump = datapath("enwiki-latest-pages-articles15.xml-p17324603p17460152.bz2")
+#    path_to_wiki_dump = datapath("enwiki-latest-pages-articles15.xml-p17324603p17460152.bz2")
 
-    # 3 GB zip
-#    path_to_wiki_dump = datapath("wikidatawiki-20211220-pages-articles-multistream19.xml-p39053268p40222795.bz2")
+    # 350 MB zip
+#    path_to_wiki_dump = datapath("enwiki-latest-pages-articles-multistream13.xml-p9172789p10672788.bz2")
+
+    # 107 MB zip
+#    path_to_wiki_dump = datapath("enwiki-latest-pages-articles-multistream24.xml-p56564554p57025655.bz2")
+
+    # 507 MB zip
+    path_to_wiki_dump = datapath("enwiki-latest-pages-articles-multistream11.xml-p5399367p6899366.bz2")
 
 
 
@@ -64,7 +88,7 @@ def main():
 
 #    corpus_path = get_tmpfile("wiki-corpus.mm")
 
-    wiki = WikiCorpus(path_to_wiki_dump, processes=4, lower=True, token_min_len=3, token_max_len=15)  # create word->word_id mapping, ~8h on full wiki
+    wiki = WikiCorpus(path_to_wiki_dump, processes=7, lower=True, token_min_len=3, token_max_len=15)
 #    MmCorpus.serialize(corpus_path, wiki)  # another 8h, creates a file in MatrixMarket format and mapping
 
     # Save WikiCorpus object (include dictionary with token2id array)
@@ -89,13 +113,19 @@ def main():
     nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 
     # Do lemmatization keeping only Noun, Adj, Verb, Adverb
-    data_lemmatized = lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
+#    data_lemmatized = lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
+    corpora = joblib.load("../../data/processed/proc_wiki_data_500MB.jl")
 
-    # "proc_wiki_data.jl" - for smaller (1.6 MB) dump
-    # "proc_wiki_data2.jl" - for bigger (28 MB) dump
-    joblib.dump(data_lemmatized, '../../data/processed/proc_wiki_data2.jl')
+    # "proc_wiki_data.jl" - for very small (1.6 MB) dump, for functionality testing
+    # "proc_wiki_data2.jl" - smaller (28 MB) dump
+    # "proc_wiki_data3.jl" - bigger (350 MB) dump
+    # "proc_wiki_data_100MB.jl" - medium (107 MB) dump
+    # "proc_wiki_data_500MB.jl" - big (507 MB) dump
+#    joblib.dump(data_lemmatized, '../../data/processed/proc_wiki_data.jl')
 
+    # uncomment, if processed wiki dump shall be saved as (corpora, texts) object in /data/corpora/ dir
+    ready_corpus(texts, corpora)
     print("done")
 
 if __name__ == '__main__':
