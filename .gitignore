@@ -7,6 +7,9 @@ __pycache__/
 
 # saved data/models and generated HTMLs
 *.jl
+*.npy
+*.id2word
+*.state
 *.html
 
 # Distribution / packaging

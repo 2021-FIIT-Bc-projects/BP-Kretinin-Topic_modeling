@@ -1,3 +1,17 @@
+# Copyright 2022 Mykyta Kretinin
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
@@ -49,7 +63,7 @@ def main():
                                                passes=10,
                                                alpha='symmetric',
                                                iterations=50,
-                                               per_word_topics=True)
+                                               per_word_topics=False)
 
     pprint(lda_model.print_topics())
 

@@ -1,3 +1,17 @@
+# Copyright 2022 Mykyta Kretinin
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 import re, numpy as np, pandas as pd
 from pprint import pprint
 
@@ -22,7 +36,49 @@ from bokeh.io import output_notebook
 # NLTK Stop words
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
-stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
+stop_words.extend(['reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
+
+def show_docs_per_topic(lda_model, corpus):
+    docs_counts = [0] * lda_model.num_topics
+
+    # Count documents in each topic
+    for i, row_list in enumerate(lda_model[corpus]):
+        row = row_list[0] if lda_model.per_word_topics else row_list
+        # print(row)
+        row = sorted(row, key=lambda x: (x[1]), reverse=True)
+        # Get the Dominant topic, Perc Contribution and Keywords for each document
+        for j, (topic_num, prop_topic) in enumerate(row):
+            if j == 0:  # => dominant topic
+                docs_counts[topic_num] += 1
+            else:
+                break
+
+    # Create dataframe
+    docs_per_topics_df = pd.DataFrame()
+    for topic_num in range(lda_model.num_topics):
+        wp = lda_model.show_topic(topic_num)
+        topic_keywords = ", ".join([word for word, prop in wp])
+        docs_per_topics_df = docs_per_topics_df.append(pd.Series([int(topic_num), docs_counts[topic_num],
+                                                                  topic_keywords]), ignore_index=True)
+    docs_per_topics_df.columns = ['Topic', 'Documents_assigned', 'Topic_Keywords']
+
+    # Visualization
+    plt.rcParams["figure.figsize"] = [16, 3]
+    plt.rcParams["figure.autolayout"] = True
+    fig, axs = plt.subplots(1, 1)
+    axs.axis('off')
+
+    the_table = axs.table(cellText=docs_per_topics_df.values,
+                          colLabels=docs_per_topics_df.columns,
+                          loc='upper center',
+                          cellLoc='center')
+
+    the_table.auto_set_column_width(col=list(range(len(docs_per_topics_df.columns))))
+    the_table.auto_set_font_size(False)
+    the_table.set_fontsize(10)
+
+    plt.title('Documents per topic statistics', fontdict=dict(size=22))
+    plt.show()
 
 
 def show_coherence_and_perplexity(model, corpus):
@@ -140,7 +196,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
     sent_topics_sorteddf_mallet = pd.DataFrame()
     sent_topics_outdf_grpd = df_topic_sents_keywords.groupby('Dominant_Topic')
-    sent_topics_outdf_grpd = sent_topics_outdf_grpd
 
     for i, grp in sent_topics_outdf_grpd:
         sent_topics_sorteddf_mallet = pd.concat([sent_topics_sorteddf_mallet,
@@ -367,7 +422,7 @@ def t_SNE_clustering(lda_model, corpus):
     topic_num = np.argmax(arr, axis=1)
 
     # tSNE Dimension Reduction
-    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca', n_jobs=3)
+    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca', n_jobs=7, perplexity=40)
     tsne_lda = tsne_model.fit_transform(arr)
 
     # Plot the Topic Clusters using Bokeh

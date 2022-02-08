@@ -1,3 +1,17 @@
+# Copyright 2022 Mykyta Kretinin
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 import joblib
 
 from gensim.models.ldamodel import LdaModel
@@ -46,8 +60,10 @@ def main():
     # LDA model based on Wikipedia emails
 #    lda_model = joblib.load('models/lda_wiki_model.jl')
 #    lda_model = joblib.load('models/big_lda_wiki_model_6topics.jl')
-    model_name = "8topics_symmetric"
-    lda_model = joblib.load('models/hyperparam_tuning/alpha/' + model_name + '.jl')
+    model_name = "6topics_symmetric"
+#    model_name = "big_lda_wiki_model_6topics"
+    lda_model = joblib.load('models/hyperparam_tuning/alpha_2/' + model_name + '.jl')
+#    lda_model = joblib.load('models/' + model_name + '.jl')
 
     print(">>> Environment is ready to go!")
 
@@ -169,9 +185,8 @@ def main():
 
             print("Time spent: " + str(total1) + " seconds")
 
-            lda_model.save("models/interim/" + model_name + "_" + str(len(corpora)) + ".jl")
-
-#            joblib.dump(lda_model, "models/interim/" + model_name + "_" + str(len(corpora)) + ".jl")
+            # Uncomment to save an updated model, to be used later in the "8-th" testing only option later
+            # lda_model.save("models/interim/" + model_name + "_" + str(len(corpora)) + ".jl")
         elif (input_val == '5'):
             zip_obj = zip(corpora, texts)
 
@@ -189,7 +204,10 @@ def main():
             print("HTML generated at root directory")
         elif (input_val == '7'):
             break
-        elif (input_val == '8'): #debug only
+        elif (input_val == '8'):
+            print("TESTING ONLY")
+            print("This option uses already updated model with the corpus used in testing")
+            print("After model and corpus selection go straight to the next step")
             print("Model name:")
             model_name = input()
 #            lda_model = joblib.load("models/interim/" + model_name)
@@ -223,6 +241,8 @@ def main():
     if not bool(corpora):
         print("Corpora is empty, closing the session...")
         exit(0)
+
+    vis.show_docs_per_topic(lda_model, corpora)
 
     print(">>> Visualization of the documents analysis results")
     print(">>> Choose desired visualization:\n 1) Show statistics\n 2) Show sentence chart (for 2+ texts)\n"

@@ -1,4 +1,16 @@
-
+# Copyright 2022 Mykyta Kretinin
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
 import logging
 import re, spacy
@@ -62,11 +74,6 @@ def main():
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
 
-    # Import Dataset
-#    data_lemmatized = joblib.load('../../data/processed/proc_data2.jl')
-#    wiki_corpus = joblib.load('../../data/processed/proc_wiki_data2.jl')
-
-
     # 1.6 MB zip
 #    path_to_wiki_dump = datapath("enwiki-latest-pages-articles1.xml-p000000010p000030302-shortened.bz2")
 
@@ -84,15 +91,7 @@ def main():
 
 
 
-
-
-#    corpus_path = get_tmpfile("wiki-corpus.mm")
-
     wiki = WikiCorpus(path_to_wiki_dump, processes=7, lower=True, token_min_len=3, token_max_len=15)
-#    MmCorpus.serialize(corpus_path, wiki)  # another 8h, creates a file in MatrixMarket format and mapping
-
-    # Save WikiCorpus object (include dictionary with token2id array)
-#    joblib.dump(wiki, '../../data/processed/proc_wiki_data.jl')
 
     texts = []
     for text in wiki.get_texts():
@@ -113,7 +112,7 @@ def main():
     nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 
     # Do lemmatization keeping only Noun, Adj, Verb, Adverb
-#    data_lemmatized = lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
+    data_lemmatized = lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
     corpora = joblib.load("../../data/processed/proc_wiki_data_500MB.jl")
 
@@ -122,10 +121,10 @@ def main():
     # "proc_wiki_data3.jl" - bigger (350 MB) dump
     # "proc_wiki_data_100MB.jl" - medium (107 MB) dump
     # "proc_wiki_data_500MB.jl" - big (507 MB) dump
-#    joblib.dump(data_lemmatized, '../../data/processed/proc_wiki_data.jl')
+    joblib.dump(data_lemmatized, '../../data/processed/proc_wiki_data.jl')
 
     # uncomment, if processed wiki dump shall be saved as (corpora, texts) object in /data/corpora/ dir
-    ready_corpus(texts, corpora)
+#    ready_corpus(texts, corpora)
     print("done")
 
 if __name__ == '__main__':
