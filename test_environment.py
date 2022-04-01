@@ -16,9 +16,11 @@ import joblib
 
 from gensim.models.ldamodel import LdaModel
 
-import prepare, re
+import prepare
+import re
 import zipfile
 from src.visualization import visualize as vis
+from datetime import date
 
 import time
 
@@ -62,10 +64,14 @@ def main():
 #    lda_model = joblib.load('models/big_lda_wiki_model_6topics.jl')
     model_name = "6topics_symmetric"
 #    model_name = "big_lda_wiki_model_6topics"
-    lda_model = joblib.load('models/hyperparam_tuning/alpha_2/' + model_name + '.jl')
+    full_model_path = "models/hyperparam_tuning/alpha_2/" + model_name + ".jl"
+    lda_model = joblib.load(full_model_path)
 #    lda_model = joblib.load('models/' + model_name + '.jl')
 
     print(">>> Environment is ready to go!")
+
+    if bool(model_name):
+        print(">>> Using trained model: " + full_model_path)
 
     print(">>> Enter documents to analyze, visualized result will be shown after documents selection and analysis")
     print(">>> Documents to analyze and other options:\n 1) Path to the document(s)\n 2) Direct input to the console\n"
@@ -193,7 +199,7 @@ def main():
             zip_list = list(zip_obj)
 
             if bool(corpora):
-                filename = 'data/corpora/corpus_' + str(len(corpora)) + '_files.jl'
+                filename = 'data/corpora/corpus_' + str(date.today()) + '_' + str(len(corpora)) + '_files.jl'
                 joblib.dump(zip_list, filename)
                 print("Corpora saved at " + filename)
             else:
@@ -201,7 +207,7 @@ def main():
 
         elif (input_val == '6'):
             prepare.generate_HTML_doc_LDA(ldamodel=lda_model, corpus=corpora)
-            print("HTML generated at root directory")
+            print("HTML generated at /reports directory")
         elif (input_val == '7'):
             break
         elif (input_val == '8'):
@@ -245,12 +251,12 @@ def main():
     vis.show_docs_per_topic(lda_model, corpora)
 
     print(">>> Visualization of the documents analysis results")
-    print(">>> Choose desired visualization:\n 1) Show statistics\n 2) Show sentence chart (for 2+ texts)\n"
-          " 3) t-SNE clustering\n 4) Calculate coherence and perplexity\n 5) exit")
+    print(">>> Choose desired visualization:\n 1) Show statistics\n "
+          "2) t-SNE clustering\n 3) Calculate coherence and perplexity\n 4) exit")
 
     while True:
-        print("1 - Show statistics, 2 - Show sentence chart (for 2+ texts), 3 - t-SNE clustering,"
-              " 4 - Coherence and Perplexity, 5 - exit")
+        print("1 - Show statistics, 2 - t-SNE clustering,"
+              " 3 - Coherence and Perplexity, 4 - exit")
         input_val = input()
         if (input_val == '1'):
             print("Choose documents number to be displayed (up to 15, 0 for the first ten)")
@@ -264,12 +270,10 @@ def main():
 
             vis.show_statistics(lda_model=lda_model, corpus=corpora, texts=texts, text_numbers=text_numbers)
         elif (input_val == '2'):
-            vis.sentences_chart(lda_model=lda_model, corpus=corpora)
-        elif (input_val == '3'):
             vis.t_SNE_clustering(lda_model=lda_model, corpus=corpora)
-        elif (input_val == '4'):
+        elif (input_val == '3'):
             vis.show_coherence_and_perplexity(model=lda_model, corpus=corpora)
-        elif (input_val == '5'):
+        elif (input_val == '4'):
             break
         else:
             print("Wrong argument")

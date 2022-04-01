@@ -13,8 +13,6 @@
 #  limitations under the License.
 
 import joblib
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.decomposition import LatentDirichletAllocation
 
 import gensim.corpora as corpora
 import gensim
@@ -23,7 +21,6 @@ from pprint import pprint
 # Plotting tools
 import pyLDAvis
 import pyLDAvis.gensim_models
-import matplotlib.pyplot as plt
 
 
 
@@ -71,7 +68,7 @@ def main():
 
     # Visualize the topics
     visualisation = pyLDAvis.gensim_models.prepare(lda_model, corpus, id2word)
-    pyLDAvis.save_html(visualisation, 'LDA_Visualization.html')
+    pyLDAvis.save_html(visualisation, '../../reports/LDAvis.html')
 
     if in_val == '1':
         joblib.dump(lda_model, '../../models/newsgrounds_' + str(topics_num) + 'topics.jl')

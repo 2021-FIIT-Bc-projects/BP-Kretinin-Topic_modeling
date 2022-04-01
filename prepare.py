@@ -12,28 +12,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import sys
-
 import os
 from bs4 import BeautifulSoup
 import requests
 from zipfile import ZipFile
-from tempfile import TemporaryFile
 import numpy as np
 import pandas as pd
-import re, nltk, spacy, gensim
-from spacy.lang.en import English
+import re, spacy, gensim
+
 import pyLDAvis.gensim_models
 from datetime import date
 
-import joblib
 
 from gensim.utils import simple_preprocess
 
 # NLTK Stop words
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
-stop_words.extend(['reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
+stop_words.extend(['include', 'standard', 'principle', 'thomson', 'reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
 import matplotlib.pyplot as plt
 
@@ -84,7 +80,7 @@ def get_top_topic(ldamodel, corpus):
 
 def generate_HTML_doc_LDA(ldamodel, corpus):
     visualisation = pyLDAvis.gensim_models.prepare(ldamodel, corpus, ldamodel.id2word)
-    pyLDAvis.save_html(visualisation, 'LDA_Visualization.html')
+    pyLDAvis.save_html(visualisation, 'reports/LDAvis.html')
 
 
 
@@ -99,14 +95,6 @@ def get_corpus(lda_model, text):
 
     # Step 2: Lemmatize
     mytext_3 = lemmatization(mytext_2, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
-
-    # Step 3: LDA update
-#    corpus = [lda_model.id2word.doc2bow(text) for text in mytext_3]
-
-    # Calculate and print perplexity
-#    print("Perplexity: " + str(lda_model.log_perplexity(corpus)))
-
-#    lda_model.update(corpus)
 
     return mytext_3
 
@@ -200,7 +188,6 @@ def show_lda_model_topics(df_topic_keywords):
 #  https://towardsdatascience.com/web-scraping-news-articles-in-python-9dd605799558
 def get_last_N_articles_from_reuters(number):
     print("If progress bar don't move for a long time, then 'class' parameter for the BeatuifulSoup find_all() should be revised and actualized")
-#    current_page = "https://www.reuters.com/news/archive/worldNews?view=page&page=100&pageSize=10"
     current_page = "https://www.reuters.com/news/archive/worldNews?view=page&page=1&pageSize=10"
 
     processed_num = 0
@@ -229,9 +216,6 @@ def get_last_N_articles_from_reuters(number):
 
         coverpage_news = soup1.find_all(class_='story-content')
 
-        # Getting the link of the article
-        #        current_page = main_page + page_next[0]['href']
-
         page_counter += 1
 
         current_page = page_first_part + str(page_counter) + page_second_part
@@ -241,10 +225,6 @@ def get_last_N_articles_from_reuters(number):
             progress_bar(processed_num, number)
             if (processed_num == number):
                 break
-
-            # only news articles (there are also albums and other things)
-            #        if "inenglish" not in coverpage_news[n].find('a')['href']:
-            #            continue
 
             # Getting the link of the article
             link = main_page + coverpage_news[iter].contents[1]['href']
@@ -259,7 +239,6 @@ def get_last_N_articles_from_reuters(number):
             article_content = article.content
             soup_article = BeautifulSoup(article_content, 'html5lib')
             regex = re.compile('article-body__content___.*')
-#            body = soup_article.find_all('div', class_='ArticleBody__content___2gQno2 paywall-article')
             body = soup_article.find_all('div', {"class": regex})
 
             # Skip if page doesn't have "article" part

@@ -21,15 +21,10 @@ import time
 
 from test_environment import progress_bar
 
-from pprint import pprint
 
-# Plotting tools
-import pyLDAvis
-import pyLDAvis.gensim_models
-import matplotlib.pyplot as plt
-
-
-# coherence_scores - array of dictionary items with with "num_topics" and "coherence" keys
+# coherence_scores - array of dictionary items with with "num_topics" and "coherence" keys (cv and umass separately)
+# id2word - dictionary
+# texts - raw text
 # perplexity_scores - array of dictionary items with with "num_topics" and "coherence" keys
 # hyperparams_list - list of hyperparameters (array of dictionaries) for LDA Model training
 # dir_path - path to the directory, where models will be/are saved

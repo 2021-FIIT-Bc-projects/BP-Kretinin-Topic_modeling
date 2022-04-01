@@ -12,19 +12,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import gensim
 # -*- coding: utf-8 -*-
 import logging
+import re
+import spacy
 
-import numpy as np
 import pandas as pd
-import re, nltk, spacy, gensim
 from gensim.utils import simple_preprocess
-from spacy.lang.en import English
-
 # NLTK Stop words
 from nltk.corpus import stopwords
+
 stop_words = stopwords.words('english')
-stop_words.extend(['reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
+stop_words.extend(['include', 'standard', 'principle', 'thomson', 'reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
 import joblib
 
@@ -34,8 +34,6 @@ def main():
     """ Runs data processing scripts to turn raw data from (../raw) into
         cleaned data ready to be analyzed (saved in ../processed).
     """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
 
     # Import Dataset
 
@@ -96,9 +94,9 @@ def main():
     # Do lemmatization keeping only Noun, Adj, Verb, Adverb
     data_lemmatized = lemmatization(data_words, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
-    joblib.dump(data_lemmatized, '../../data/processed/proc_data2.jl')
+    joblib.dump(data_lemmatized, '../../data/processed/proc_data.jl')
     # then reload it with
-    data_lemmatized = joblib.load('../../data/processed/proc_data2.jl')
+    data_lemmatized = joblib.load('../../data/processed/proc_data.jl')
 
     print("Done")
 

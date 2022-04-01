@@ -16,9 +16,9 @@ import logging
 import re, spacy
 import joblib
 
-from gensim.test.utils import datapath, get_tmpfile
+from gensim.test.utils import datapath
 import gensim.corpora
-from gensim.corpora import Dictionary, WikiCorpus, MmCorpus
+from gensim.corpora import WikiCorpus
 from gensim.utils import simple_preprocess
 
 gensim.corpora.wikicorpus.ARTICLE_MIN_WORDS = 50
@@ -45,7 +45,7 @@ gensim.corpora.wikicorpus.RE_P9 = re.compile('<nowiki([> ].*?)(</nowiki>|/>)', r
 # NLTK Stop words
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
-stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
+stop_words.extend(['include', 'thomson', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
 # function to save processed wiki dump as (corpora, texts) object
 def ready_corpus(texts, corpora):
@@ -68,25 +68,17 @@ def ready_corpus(texts, corpora):
 
 
 def main():
-    """ Runs data processing scripts to turn raw data from (../raw) into
+    """ Runs data processing scripts to turn Wikipedia dump into
         cleaned data ready to be analyzed (saved in ../processed).
     """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
 
-    # 1.6 MB zip
-#    path_to_wiki_dump = datapath("enwiki-latest-pages-articles1.xml-p000000010p000030302-shortened.bz2")
-
-    # 28 MB zip
-#    path_to_wiki_dump = datapath("enwiki-latest-pages-articles15.xml-p17324603p17460152.bz2")
-
-    # 350 MB zip
+    # 350 MB dump
 #    path_to_wiki_dump = datapath("enwiki-latest-pages-articles-multistream13.xml-p9172789p10672788.bz2")
 
-    # 107 MB zip
+    # 107 MB dump
 #    path_to_wiki_dump = datapath("enwiki-latest-pages-articles-multistream24.xml-p56564554p57025655.bz2")
 
-    # 507 MB zip
+    # 507 MB dump
     path_to_wiki_dump = datapath("enwiki-latest-pages-articles-multistream11.xml-p5399367p6899366.bz2")
 
 
@@ -107,8 +99,7 @@ def main():
         texts_out = [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts_out]
         return texts_out
 
-    # Initialize spacy 'en' model, keeping only tagger component (for efficiency)
-    # Run in terminal: python3 -m spacy download en
+    # Initialize spacy 'en_core_web_sm' model, keeping only tagger component (for efficiency)
     nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 
     # Do lemmatization keeping only Noun, Adj, Verb, Adverb
@@ -116,14 +107,12 @@ def main():
 
     corpora = joblib.load("../../data/processed/proc_wiki_data_500MB.jl")
 
-    # "proc_wiki_data.jl" - for very small (1.6 MB) dump, for functionality testing
-    # "proc_wiki_data2.jl" - smaller (28 MB) dump
     # "proc_wiki_data3.jl" - bigger (350 MB) dump
     # "proc_wiki_data_100MB.jl" - medium (107 MB) dump
     # "proc_wiki_data_500MB.jl" - big (507 MB) dump
     joblib.dump(data_lemmatized, '../../data/processed/proc_wiki_data.jl')
 
-    # uncomment, if processed wiki dump shall be saved as (corpora, texts) object in /data/corpora/ dir
+    # Uncomment, if processed wiki dump shall be saved as (corpora, texts) object in /data/corpora/ dir
 #    ready_corpus(texts, corpora)
     print("done")
 

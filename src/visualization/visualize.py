@@ -12,31 +12,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import re, numpy as np, pandas as pd
-from pprint import pprint
+import numpy as np, pandas as pd
 
 # Gensim
-import gensim, spacy, logging, warnings
-import gensim.corpora as corpora
-from gensim.utils import simple_preprocess
+import gensim
 from gensim.models import CoherenceModel
 import matplotlib.pyplot as plt
 
-from prepare import get_corpus
+
 
 import seaborn as sns
 import matplotlib.colors as mcolors
-from matplotlib.patches import Rectangle
 
 from sklearn.manifold import TSNE
 from bokeh.plotting import figure, output_file, show
-from bokeh.models import Label
-from bokeh.io import output_notebook
 
 # NLTK Stop words
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
-stop_words.extend(['reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
+stop_words.extend(['include', 'standard', 'principle', 'thomson', 'reuter', 'oct', 'from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good', 'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy', 'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even', 'also', 'may', 'take', 'come'])
 
 def show_docs_per_topic(lda_model, corpus):
     docs_counts = [0] * lda_model.num_topics
@@ -349,67 +343,11 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
     plt.show()
 
 
-
-def sentences_chart(lda_model, corpus, start = 0, end = 1):
-    if end == 1:
-        end = len(corpus)
-    if start > end:
-        start = end - 10
-    if start < 0:
-        start = 0
-
-
-    corp = corpus[start:end]
-    mycolors = [color for name, color in mcolors.TABLEAU_COLORS.items()]
-
-    fig, axes = plt.subplots(end-start, 1, figsize=(20, (end-start)*0.95), dpi=160)
-    if (end-start) == 1:
-        axes.axis('off')
-    else:
-        axes[0].axis('off')
-    for i, ax in enumerate(axes):
-        corp_cur = corp[i]
-        topic_percs, wordid_topics, wordid_phivalues = lda_model[corp_cur]
-        word_dominanttopic = [(lda_model.id2word[wd], topic[0]) for wd, topic in wordid_topics]
-        ax.text(0.01, 0.5, "Doc " + str(i) + ": ", verticalalignment='center',
-                fontsize=16, color='black', transform=ax.transAxes, fontweight=700)
-
-        # Draw Rectange
-        topic_percs_sorted = sorted(topic_percs, key=lambda x: (x[1]), reverse=True)
-        ax.add_patch(Rectangle((0.0, 0.05), 0.99, 0.90, fill=None, alpha=1,
-                               color=mycolors[topic_percs_sorted[0][0]], linewidth=2))
-
-        word_pos = 0.085
-        for j, (word, topics) in enumerate(word_dominanttopic):
-            if j < 8:
-                ax.text(word_pos, 0.5, word,
-                        horizontalalignment='left',
-                        verticalalignment='center',
-                        fontsize=16, color=mycolors[topics],
-                        transform=ax.transAxes, fontweight=700)
-                word_pos += .015 * len(word)  # to move the word for the next iter
-                ax.axis('off')
-        ax.text(word_pos, 0.5, '. . .',
-                horizontalalignment='left',
-                verticalalignment='center',
-                fontsize=16, color='black',
-                transform=ax.transAxes)
-
-
-    plt.subplots_adjust(wspace=0, hspace=0)
-    plt.suptitle('Sentence Topic Coloring for Documents: ' + str(start) + ' to ' + str(end-1), fontsize=22, y=0.95, fontweight=700)
-    plt.tight_layout()
-    plt.show()
-
-
-
-
-
 def t_SNE_clustering(lda_model, corpus):
     topic_weights = []
-    tmp_obj = lda_model[corpus]
     for i, row_list in enumerate(lda_model[corpus]):
-        topic_weights.append([w for i, w in row_list])
+        row = row_list[0] if lda_model.per_word_topics else row_list
+        topic_weights.append([w for i, w in row])
 
 
     # Array of topic weights
@@ -421,12 +359,17 @@ def t_SNE_clustering(lda_model, corpus):
     # Dominant topic number in each doc
     topic_num = np.argmax(arr, axis=1)
 
+    perpl = int(input())
+
+    if perpl < 0:
+        perpl = 30
+
     # tSNE Dimension Reduction
-    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca', n_jobs=7, perplexity=40)
+    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca', n_jobs=7, perplexity=perpl)
     tsne_lda = tsne_model.fit_transform(arr)
 
     # Plot the Topic Clusters using Bokeh
-    output_file("t_SNE_clusters.html")
+    output_file("reports/t-SNE_clusters.html")
     n_topics = lda_model.num_topics
     mycolors = np.array([color for name, color in mcolors.TABLEAU_COLORS.items()])
     plot = figure(title="t-SNE Clustering of {} LDA Topics".format(n_topics),
