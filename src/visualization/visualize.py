@@ -12,6 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+#  Part of the module's functionality and algorithms was inspired by the code
+#  from the article https://www.machinelearningplus.com/nlp/topic-modeling-python-sklearn-examples/
+
+
 import numpy as np, pandas as pd
 
 # Gensim
