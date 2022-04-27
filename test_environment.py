@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+
 import joblib
-print(joblib.__file__)
 
 from gensim.models.ldamodel import LdaModel
 
@@ -22,6 +22,8 @@ import re
 import zipfile
 from src.visualization import visualize as vis
 from datetime import date
+from os import listdir
+from os.path import isfile, join, basename
 
 import time
 
@@ -55,23 +57,34 @@ def process_file(file, filename, corpuses, texts, lda_model):
     corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
 
 def main():
-    #help('modules')
+    
     print(">>> Environment is preparing...")
 
-    # LDA model based on Wikipedia emails
-#    model_name = "6topics_symmetric"
-#    model_name = "big_lda_wiki_model_6topics"
-    model_name = "reuters_model_6topics"
-#    model_name = "wiki_model_6topics"
-#    full_model_path = "models/hyperparam_tuning/alpha_2/" + model_name + ".jl"
-    full_model_path = "models/" + model_name + ".jl"
-    lda_model = joblib.load(full_model_path)
-#    lda_model = joblib.load('models/' + model_name + '.jl')
+    models_path = "models/"
 
     print(">>> Environment is ready to go!")
 
+    models_list = [f for f in listdir(models_path) if isfile(join(models_path, f))]
+    models_names = []
+    for model in models_list:
+        name = basename(model)
+        if re.search("\.jl$", name):
+            models_names.append(name)
+
+    if models_names:
+        print(">>> Choose one of the following models from /models folder: ")
+        for model in models_names:
+            print(model)
+        print(">>> Name of the model: ")
+        model_name = str(input())
+    else:
+        print(">>> Error! No models found to do tests")
+        return 0
+
+    lda_model = joblib.load(models_path + model_name)
+
     if bool(model_name):
-        print(">>> Using trained model: " + full_model_path)
+        print(">>> Using trained model: " + model_name)
 
     print(">>> Enter documents to analyze, visualized result will be shown after documents selection and analysis")
     print(">>> Documents to analyze and other options:\n 1) Path to the document(s)\n 2) Direct input to the console\n"
