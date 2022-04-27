@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import joblib
+print(joblib.__file__)
 
 from gensim.models.ldamodel import LdaModel
 
@@ -53,18 +54,17 @@ def process_file(file, filename, corpuses, texts, lda_model):
 
     corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
 
-
 def main():
+    #help('modules')
     print(">>> Environment is preparing...")
-    # LDA model based on Newsgrounds articles (emails)
-#    lda_model = joblib.load('models/lda_model2.jl')
 
     # LDA model based on Wikipedia emails
-#    lda_model = joblib.load('models/lda_wiki_model.jl')
-#    lda_model = joblib.load('models/big_lda_wiki_model_6topics.jl')
-    model_name = "6topics_symmetric"
+#    model_name = "6topics_symmetric"
 #    model_name = "big_lda_wiki_model_6topics"
-    full_model_path = "models/hyperparam_tuning/alpha_2/" + model_name + ".jl"
+    model_name = "reuters_model_6topics"
+#    model_name = "wiki_model_6topics"
+#    full_model_path = "models/hyperparam_tuning/alpha_2/" + model_name + ".jl"
+    full_model_path = "models/" + model_name + ".jl"
     lda_model = joblib.load(full_model_path)
 #    lda_model = joblib.load('models/' + model_name + '.jl')
 

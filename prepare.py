@@ -241,7 +241,7 @@ def get_last_N_articles_from_reuters(number):
             article = requests.get(link)
             article_content = article.content
             soup_article = BeautifulSoup(article_content, 'html5lib')
-            regex = re.compile('article-body__content___.*')
+            regex = re.compile('article-body_*content_*.*')
             body = soup_article.find_all('div', {"class": regex})
 
             # Skip if page doesn't have "article" part

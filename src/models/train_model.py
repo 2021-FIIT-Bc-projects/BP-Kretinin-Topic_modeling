@@ -25,7 +25,7 @@ import pyLDAvis.gensim_models
 
 
 def main():
-    print("Choose source of texts for learning:\n 1) Newsgrounds\n 2) Wikipedia\n")
+    print("Choose source of texts for learning:\n 1) Newsgrounds\n 2) Wikipedia\n 3) Reuters\n")
     in_val = input()
     if in_val == '1':
 
@@ -33,7 +33,16 @@ def main():
 
     elif in_val == '2':
 
-        data_lemmatized = joblib.load('../../data/processed/proc_wiki_data3.jl')
+        data_lemmatized = joblib.load('../../data/processed/proc_wiki_data2.jl')
+#        data_lemmatized = data_lemmatized[0:5000]
+
+    elif in_val == '3':
+
+        data_lemmatized = joblib.load('../../data/corpora/corpus_2022-04-20_5000_files.jl')
+        data_buffer = []
+        for text in data_lemmatized:
+            data_buffer.append(text[0][0])
+        data_lemmatized = data_buffer
 
     else:
         print("Invalid argument")
@@ -41,8 +50,7 @@ def main():
 
     print("Choose number of topics: ")
     topics_num = int(input())
-    print("Chosen number of topics: ")
-
+    print("Chosen number of topics: " + str(topics_num))
 
     # Create Dictionary
     id2word = corpora.Dictionary(data_lemmatized)
@@ -57,9 +65,9 @@ def main():
                                                random_state=100,
                                                workers=7,
                                                chunksize=10,
-                                               passes=10,
+                                               passes=20,
                                                alpha='symmetric',
-                                               iterations=50,
+                                               iterations=100,
                                                per_word_topics=False)
 
     pprint(lda_model.print_topics())
@@ -75,9 +83,13 @@ def main():
         # then reload it with
         lda_model = joblib.load('../../models/newsgrounds_' + str(topics_num) + 'topics.jl')
     elif in_val == '2':
-        joblib.dump(lda_model, '../../models/big_lda_wiki_model_' + str(topics_num) + 'topics.jl')
+        joblib.dump(lda_model, '../../models/wiki_model_' + str(topics_num) + 'topics.jl')
         # then reload it with
 #        lda_model = joblib.load('../../models/big_lda_wiki_model_' + str(topics_num) + 'topics.jl')
+    elif in_val == '3':
+        joblib.dump(lda_model, '../../models/reuters_model_' + str(topics_num) + 'topics.jl')
+        # then reload it with
+    #        lda_model = joblib.load('../../models/big_lda_wiki_model_' + str(topics_num) + 'topics.jl')
 
     print("done")
 

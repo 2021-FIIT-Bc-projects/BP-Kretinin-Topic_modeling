@@ -75,8 +75,6 @@ def main():
 
     data_words = list(sent_to_words(data))
 
-    # print(data_words[:1])
-
     def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
         """https://spacy.io/api/annotation"""
         texts_out = []
