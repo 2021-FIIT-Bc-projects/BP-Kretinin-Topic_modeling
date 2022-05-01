@@ -41,7 +41,7 @@ Project Organization
     │   ├── models         <- Scripts to train models and then use trained models to make
     │   │   │                 predictions
     │   │   ├── hyperparameters_tuning.py    <- hyperparameter tuning experiment, where multiple models are trained and compared
-    │   │   └── train_model.py              <- LDA (multicore) model creation using a chosen dataset
+    │   │   └── train_model.py               <- LDA (multicore) model creation using a chosen dataset
     │   │
     │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
     │       └── visualize.py
@@ -62,7 +62,7 @@ Code files providing a functionality
 1) ***test_environment.py*** - main program, where tests are executed. Requires at least 1 trained LDA model (.jl extension) in \models directory to work
 2) ***make_wiki_dataset.py*** - dataset creation from the Wikipedia dump
                           (dump shall be stored in `gensim.test.utils.datapath()` folder, which is usually
-                           C:\Users\<User>\PycharmProjects\<pythonProject>\venv\Lib\site-packages\gensim\test\test_data)
+                           **C:\Users\\\<User>\PycharmProjects\\\<pythonProject>\venv\Lib\site-packages\gensim\test\test_data** in PyCharm IDE case)
 4) ***train_model.py*** - LDA model creation and training
 5) ***hyperparameters_tuning.py*** - execution of hyperparameter tuning experiment, to define the best hyperparameters for a given training dataset
 
