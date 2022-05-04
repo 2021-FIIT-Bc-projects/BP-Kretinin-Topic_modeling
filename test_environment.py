@@ -57,7 +57,7 @@ def process_file(file, filename, corpuses, texts, lda_model):
     corpuses.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
 
 def main():
-    
+
     print(">>> Environment is preparing...")
 
     models_path = "models/"
@@ -133,21 +133,26 @@ def main():
         elif (input_val == '2'):
             print("2 entered, input your text: ")
             in_val = input()
-            if len(in_val.strip()) == 0:
+            user_text = ""
+            while in_val != '':     # get all lines from input, if it contains newline characters
+                user_text += in_val
+                user_text += " "
+                in_val = input()
+            if len(user_text.strip()) == 0:
                 print("No text was found")
                 continue
-            mytext = [in_val]
+            mytext = [user_text]
 
             # Remove some special (unprintable) characters
-            in_val = re.sub(r"[\t\r\n\v\f]+", " ", in_val)
+            user_text = re.sub(r"[\t\r\n\v\f]+", " ", user_text)
 
-            texts.append(in_val)
+            texts.append(user_text)
 
             corpora.append(prepare.get_corpus(lda_model=lda_model, text=mytext))
 
             # Compute Perplexity
-            print('\nPerplexity: ',
-                  lda_model.log_perplexity(corpora))  # a measure of how good the model is. lower the better.
+            #print('\nPerplexity: ',
+            #      lda_model.log_perplexity(corpora))  # a measure of how good the model is. lower the better.
 
             # Used only for terminal output of the current model analysis (?)
 #            if len(corpuses) > 1:
@@ -260,8 +265,12 @@ def main():
     if not bool(corpora):
         print("Corpora is empty, closing the session...")
         exit(0)
-
-    vis.show_docs_per_topic(lda_model, corpora)
+    try:
+        vis.show_docs_per_topic(lda_model, corpora)
+    except:
+        print("Not enough information to get analysis results")
+        print("Probably, selected corpora hasn't been applied (option 4 - use corpora)")
+        return 0
 
     print(">>> Visualization of the documents analysis results")
     print(">>> Choose desired visualization:\n 1) Show statistics\n "

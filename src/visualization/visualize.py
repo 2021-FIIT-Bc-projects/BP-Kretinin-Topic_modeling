@@ -269,82 +269,80 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
 
 
+    if (len(corpus) > 1):
+        cols = [color for name, color in mcolors.XKCD_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS' / mcolors.TABLEAU_COLORS
+
+        rows = int(np.sqrt(lda_model.num_topics))
+        columns = int(lda_model.num_topics/rows)+1
 
 
+        fig, axes = plt.subplots(rows, columns, figsize=(16, 14), dpi=160, sharex="none", sharey="none")
 
-    cols = [color for name, color in mcolors.XKCD_COLORS.items()]  # more colors: 'mcolors.XKCD_COLORS' / mcolors.TABLEAU_COLORS
+    #    max_len_ticks = int(round(max(doc_lens) * 1.05, 0))
 
-    rows = int(np.sqrt(lda_model.num_topics))
-    columns = int(lda_model.num_topics/rows)+1
+        for i, ax in enumerate(axes.flatten()):
 
+            # delete unused subplots
+            if i >= lda_model.num_topics:
+                plt.delaxes(axes[int(i / columns)][i % columns])
+                continue
 
-    fig, axes = plt.subplots(rows, columns, figsize=(16, 14), dpi=160, sharex="none", sharey="none")
+            df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
+            doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
 
-#    max_len_ticks = int(round(max(doc_lens) * 1.05, 0))
+            # Calculate and delete outliers, if they are
+            # Formula: |x - mean| < 2 * std
+            mean = np.mean(doc_lens)
+            standard_deviation = np.std(doc_lens)
+            distance_from_mean = abs(doc_lens - mean)
+            max_deviations = 2
+            not_outlier = distance_from_mean < max_deviations * standard_deviation
 
-    for i, ax in enumerate(axes.flatten()):
+            no_outliers = []
+            for j, is_not_outlier in enumerate(not_outlier):
+                if is_not_outlier:
+                    no_outliers.append(doc_lens[j])
+            doc_lens = no_outliers
 
-        # delete unused subplots
-        if i >= lda_model.num_topics:
-            plt.delaxes(axes[int(i / columns)][i % columns])
-            continue
+            if bool(doc_lens):
+                max_len = max(doc_lens)
+                min_len = min(doc_lens)
+                empty_docs = False
+            else:
+                max_len = 1
+                min_len = 0
+                empty_docs = False
 
-        df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
-        doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
+    #        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
+    #        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
 
-        # Calculate and delete outliers, if they are
-        # Formula: |x - mean| < 2 * std
-        mean = np.mean(doc_lens)
-        standard_deviation = np.std(doc_lens)
-        distance_from_mean = abs(doc_lens - mean)
-        max_deviations = 2
-        not_outlier = distance_from_mean < max_deviations * standard_deviation
+            ax.set(xlim=(min_len, max_len), xlabel='Document Word Count')
+            ax.set_xticks(np.linspace(start=min_len, stop=max_len, num=3))
+            ax.set_ylabel('Number of Documents', color="black")
+            ax.set_xlabel('Words', color="black")
+            ax.set_title('Topic: ' + str(i+1), fontdict=dict(size=16, color=cols[i]))
+            ax.tick_params(axis='y', labelcolor="black", color=cols[i])
 
-        no_outliers = []
-        for j, is_not_outlier in enumerate(not_outlier):
-            if is_not_outlier:
-                no_outliers.append(doc_lens[j])
-        doc_lens = no_outliers
+            if not (empty_docs):
+                sns.histplot(ax=ax, color=cols[i], x=doc_lens, bins="auto", stat="count")
+                sns.kdeplot(doc_lens, color="black", ax=ax.twinx())
+            else:
+                ax.text(0.35, 0.5, "Empty")
 
-        if bool(doc_lens):
-            max_len = max(doc_lens)
-            min_len = min(doc_lens)
-            empty_docs = False
-        else:
-            max_len = 1
-            min_len = 0
-            empty_docs = False
+    #        ax.hist(doc_lens, bins=(len(values) * 2 + 1), color=cols[i])
 
-#        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
-#        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
-
-        ax.set(xlim=(min_len, max_len), xlabel='Document Word Count')
-        ax.set_xticks(np.linspace(start=min_len, stop=max_len, num=3))
-        ax.set_ylabel('Number of Documents', color="black")
-        ax.set_xlabel('Words', color="black")
-        ax.set_title('Topic: ' + str(i+1), fontdict=dict(size=16, color=cols[i]))
-        ax.tick_params(axis='y', labelcolor="black", color=cols[i])
-
-        if not (empty_docs):
-            sns.histplot(ax=ax, color=cols[i], x=doc_lens, bins="auto", stat="count")
-            sns.kdeplot(doc_lens, color="black", ax=ax.twinx())
-        else:
-            ax.text(0.35, 0.5, "Empty")
-
-#        ax.hist(doc_lens, bins=(len(values) * 2 + 1), color=cols[i])
-
-#        ax.set(xlim=(min_len, max_len), ylim=(0, max(1, max(counts))), xlabel='Document Word Count')
-#        ax.set_ylabel('Number of Documents', color="black")
-#        ax.set_title('Topic: ' + str(i), fontdict=dict(size=16, color=cols[i]))
-        #sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
-#        sns.kdeplot(doc_lens, color="black", shade=False, ax=ax)
+    #        ax.set(xlim=(min_len, max_len), ylim=(0, max(1, max(counts))), xlabel='Document Word Count')
+    #        ax.set_ylabel('Number of Documents', color="black")
+    #        ax.set_title('Topic: ' + str(i), fontdict=dict(size=16, color=cols[i]))
+            #sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
+    #        sns.kdeplot(doc_lens, color="black", shade=False, ax=ax)
 
 
-    fig.tight_layout()
-    plt.subplots_adjust()
-    fig.subplots_adjust(top=0.90)
-    fig.suptitle('Distribution of Document Word Counts by Dominant Topic', fontsize=22)
-    plt.show()
+        fig.tight_layout()
+        plt.subplots_adjust()
+        fig.subplots_adjust(top=0.90)
+        fig.suptitle('Distribution of Document Word Counts by Dominant Topic', fontsize=22)
+        plt.show()
 
 
 def t_SNE_clustering(lda_model, corpus):
