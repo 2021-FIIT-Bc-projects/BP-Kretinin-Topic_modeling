@@ -3,6 +3,11 @@ BP-Kretinin-Topic_modeling
 
 Mykyta's BP project FIIT STU Bratislava, Topic modeling 
 
+Registration number of work in the information system
+------------
+
+FIIT-5212-105326
+
 BP Task
 ------------
 
@@ -55,6 +60,25 @@ Installation
 4) run `python -m spacy download en`
 5) run `pip install html5lib`
 6) (extra step, program will work without it) run `pip install python-Levenshtein` (Microsoft Visual c++ 14 Build tools are required)
+
+User Manual
+--------
+
+1) First, user has to train LDA model, what can be done by running ***train_model.py***. If user wants, he can manually set/change predefined parameters of the model in the code. Also, user has to provide a training dataset, which will be used in model training.
+2) After model has been trained, user is able to do the tests. For these purposes, there are (git repository) few text dataset - scrapped Reuters articles. They are located at */data/external/texts*.
+3) So, user has to launch (run) ***test_environment.py***, where he will be requested to choose model, and then - to choose one of the options: 
+    1 - path,
+    2 - direct input,
+    3 - Crawl for last N articles at reuters.com,
+    4 - use corpora,
+    5 - save corpora,
+    6 - Intertopic Distance Map,
+    7 - exit
+4) Therefore, as the main scenario, will be chosen option "**1**", and user will enter the name of the .zip archive (our testing dataset)
+5) After being processed, its corpora may be saved (optional, option "***5***") and has to be applied to update the model (option "***4***").
+6) After that, user can go to the next part of the testing - data visualization (option "***7***" - exit).
+7) User will see the distribution of documents from the dataset among LDA model topics. Then next data may be visualized: statistics about documents in the dataset (option "***1***"),  t-SNE clustering (option "***2***"), coherence and perplexity scores (option "***3***").
+8) When all tests were done, user will close the program (option "***4***" -  exit)
 
 Code files providing a functionality
 --------
