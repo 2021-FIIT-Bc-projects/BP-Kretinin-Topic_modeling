@@ -24,7 +24,8 @@ Project Organization
     │   ├── processed      <- The final, canonical data sets for modeling.
     │   └── raw            <- The original, immutable data dump.
     │
-    ├── models             <- Trained and serialized models (.jl extension), model predictions, or model summaries
+    ├── models             <- Trained and serialized models (.jl extension),
+    │                         model predictions, or model summaries
     │
     ├── reports            <- Generated diagrams and graphs (as HTML pages)
     │
@@ -39,13 +40,19 @@ Project Organization
     │   ├── __init__.py    <- Makes src a Python module
     │   │
     │   ├── data           <- Scripts to download or generate data
-    │   │   ├── make_dataset.py         <- create a dataset from newsgrouns articles (currently unused, has been used
-    │   │   │                              in functionality testing)
-    │   │   └── make_wiki_dataset.py    <- create a wiki dataset from a Wikipedia articles dump (defined in the code)
+    │   │   │
+    │   │   ├── make_dataset.py         <- create a dataset from newsgrouns articles 
+    │   │   │                              (currently unused, has been used in functionality testing)
+    │   │   │                              
+    │   │   └── make_wiki_dataset.py    <- create a wiki dataset from a Wikipedia
+    │   │                                  articles dump (defined in the code)
     │   │
     │   ├── models         <- Scripts to train models and then use trained models to make
     │   │   │                 predictions
-    │   │   ├── hyperparameters_tuning.py    <- hyperparameter tuning experiment, where multiple models are trained and compared
+    │   │   │
+    │   │   ├── hyperparameters_tuning.py    <- hyperparameter tuning experiment, where
+    │   │   │                                   multiple models are trained and compared
+    │   │   │
     │   │   └── train_model.py               <- LDA (multicore) model creation using a chosen dataset
     │   │
     │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
