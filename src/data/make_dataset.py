@@ -14,7 +14,6 @@
 
 import gensim
 # -*- coding: utf-8 -*-
-import logging
 import re
 import spacy
 
@@ -31,9 +30,6 @@ import joblib
 
 
 def main():
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
-    """
 
     # Import Dataset
 
@@ -67,7 +63,6 @@ def main():
     # Remove distracting single quotes
     data = [re.sub("\'", "", sent) for sent in data]
 
-    # print(data[:1])
 
     def sent_to_words(sentences):
         for sentence in sentences:
@@ -93,7 +88,7 @@ def main():
     data_lemmatized = lemmatization(data_words, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
     joblib.dump(data_lemmatized, '../../data/processed/proc_data.jl')
-    # then reload it with
+    # then try to reload it with
     data_lemmatized = joblib.load('../../data/processed/proc_data.jl')
 
     print("Done")

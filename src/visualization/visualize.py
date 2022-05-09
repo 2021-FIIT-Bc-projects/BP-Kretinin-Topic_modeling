@@ -147,7 +147,6 @@ def show_table_with_documents_stats(dataFrame, text_numbers = None):
 
 
 def show_statistics(lda_model, corpus, texts, text_numbers):
-#    texts = [text[:60] + "..." for text in texts_in]
     def format_topics_sentences(ldamodel=None, corpus=corpus, texts=texts):
         # Init output
         sent_topics_df = pd.DataFrame()
@@ -155,7 +154,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
         # Get main topic in each document
         for i, row_list in enumerate(ldamodel[corpus]):
             row = row_list[0] if ldamodel.per_word_topics else row_list
-            # print(row)
             row = sorted(row, key=lambda x: (x[1]), reverse=True)
             # Get the Dominant topic, Perc Contribution and Keywords for each document
             for j, (topic_num, prop_topic) in enumerate(row):
@@ -179,7 +177,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
     df_dominant_topic = df_topic_sents_keywords.reset_index()
     df_dominant_topic.columns = ['Document_No', 'Dominant_Topic', 'Topic_Perc_Contrib', 'Keywords', "Text"]
 
-#    df_dominant_topic.head(10)
 
     text_numbers = list(set(text_numbers))
 
@@ -207,8 +204,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
     sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Text"]
     sent_topics_sorteddf_mallet = sent_topics_sorteddf_mallet.drop(columns="Text")
 
-    # Show
-#    sent_topics_sorteddf_mallet.head(10)
 
 
 
@@ -239,9 +234,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
         # Plot
         plt.figure(figsize=(16, 7), dpi=160)
-    #    plt.hist(doc_lens, bins=(max(doc_lens) - min(doc_lens) + 1), color='navy')
-
-#        plt.axis([0, round(max(doc_lens) * 1.05, 0), 0, round(max(counts) * 1.5, 0) + 1])
 
         ax = plt.gca()
 
@@ -252,15 +244,13 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
         sns.histplot(ax=ax, x=doc_lens, bins="auto", stat="count")
         sns.kdeplot(doc_lens, color="black", ax=ax.twinx())
 
-    #    plt.hist(doc_lens, bins=round(len(values) * 2) + 1, color='navy')
-#        plt.hist(doc_lens, bins=round(len(doc_lens)) + 1, color='navy')
 
         plt.text(0.85 * max(doc_lens), 0.9 * plt.ylim()[1], "Mean   : " + str(round(np.mean(doc_lens))))
         plt.text(0.85 * max(doc_lens), 0.8 * plt.ylim()[1], "Median : " + str(round(np.median(doc_lens))))
         plt.text(0.85 * max(doc_lens), 0.7 * plt.ylim()[1], "Stdev  : " + str(round(np.std(doc_lens))))
         plt.text(0.85 * max(doc_lens), 0.6 * plt.ylim()[1], "1%ile  : " + str(round(np.quantile(doc_lens, q=0.01))))
         plt.text(0.85 * max(doc_lens), 0.5 * plt.ylim()[1], "99%ile : " + str(round(np.quantile(doc_lens, q=0.99))))
-    #    plt.axis([0, round(max(doc_lens)*1.05, 0), 0, len(corpus)])
+
 
         plt.title('Distribution of Document Word Counts', fontdict=dict(size=22))
         plt.show()
@@ -278,7 +268,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
         fig, axes = plt.subplots(rows, columns, figsize=(16, 14), dpi=160, sharex="none", sharey="none")
 
-    #    max_len_ticks = int(round(max(doc_lens) * 1.05, 0))
 
         for i, ax in enumerate(axes.flatten()):
 
@@ -290,8 +279,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
             df_dominant_topic_sub = df_dominant_topic.loc[df_dominant_topic.Dominant_Topic == i, :]
             doc_lens = [d.count(' ')+1 for d in df_dominant_topic_sub.Text]
 
-            # Calculate and delete outliers, if they are
-            # Formula: |x - mean| < 2 * std
             mean = np.mean(doc_lens)
             standard_deviation = np.std(doc_lens)
             distance_from_mean = abs(doc_lens - mean)
@@ -313,8 +300,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
                 min_len = 0
                 empty_docs = False
 
-    #        ax.hist(doc_lens, bins=(max_len - min_len + 1), color=cols[i])
-    #        ax.hist(doc_lens, bins=len(doc_lens)*10+1, color=cols[i])
 
             ax.set(xlim=(min_len, max_len), xlabel='Document Word Count')
             ax.set_xticks(np.linspace(start=min_len, stop=max_len, num=3))
@@ -329,14 +314,6 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
             else:
                 ax.text(0.35, 0.5, "Empty")
 
-    #        ax.hist(doc_lens, bins=(len(values) * 2 + 1), color=cols[i])
-
-    #        ax.set(xlim=(min_len, max_len), ylim=(0, max(1, max(counts))), xlabel='Document Word Count')
-    #        ax.set_ylabel('Number of Documents', color="black")
-    #        ax.set_title('Topic: ' + str(i), fontdict=dict(size=16, color=cols[i]))
-            #sns.kdeplot(doc_lens, color="black", shade=False, ax=ax.twinx())
-    #        sns.kdeplot(doc_lens, color="black", shade=False, ax=ax)
-
 
         fig.tight_layout()
         plt.subplots_adjust()
@@ -346,6 +323,9 @@ def show_statistics(lda_model, corpus, texts, text_numbers):
 
 
 def t_SNE_clustering(lda_model, corpus):
+    if (len(corpus) < 2):
+        print("Required 2 or more texts in the corpus")
+        return
     topic_weights = []
     for i, row_list in enumerate(lda_model[corpus]):
         row = row_list[0] if lda_model.per_word_topics else row_list
@@ -361,6 +341,7 @@ def t_SNE_clustering(lda_model, corpus):
     # Dominant topic number in each doc
     topic_num = np.argmax(arr, axis=1)
 
+    print("Choose perplexity (neigbors=3*perplexity):")
     perpl = int(input())
 
     if perpl < 0:
