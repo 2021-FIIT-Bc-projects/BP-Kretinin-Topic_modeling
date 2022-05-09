@@ -64,8 +64,10 @@ Installation
 User Manual
 --------
 
+**Notice:** For testing there are trained models (/models folder), so user can start from **Step 2**.
+
 1) First, user has to train LDA model, what can be done by running ***train_model.py***. If user wants, he can manually set/change predefined parameters of the model in the code. Also, user has to provide a training dataset, which will be used in model training.
-2) After model has been trained, user is able to do the tests. For these purposes, there are (git repository) few text dataset - scrapped Reuters articles. They are located at */data/external/texts*.
+2) After model has been trained, user is able to do the tests. For these purposes, there are (git repository) few text datasets - scrapped Reuters articles. They are located at */data/external/texts*.
 3) So, user has to launch (run) ***test_environment.py***, where he will be requested to choose model, and then - to choose one of the options: 
     1 - path,
     2 - direct input,
