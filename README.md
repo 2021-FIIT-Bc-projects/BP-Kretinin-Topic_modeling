@@ -24,8 +24,7 @@ Project Organization
     │   ├── processed      <- The final, canonical data sets for modeling.
     │   └── raw            <- The original, immutable data dump.
     │
-    ├── models             <- Trained and serialized models (.jl extension),
-    │                         model predictions, or model summaries
+    ├── models             <- Trained and serialized models (.jl extension)
     │
     ├── reports            <- Generated diagrams and graphs (as HTML pages)
     │
